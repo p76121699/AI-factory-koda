@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Brand Colors */
+  --color-primary-500: #3A86FF;
+  --color-primary-600: #2F6ED6;
+  --color-primary-700: #2659AD;
+
+  /* Accent Colors (Status) */
+  --color-success: #22C55E;
+  --color-warning: #EAB308;
+  --color-danger: #EF4444;
+  --color-info: #38BDF8;
+
+  /* Background Colors (Dark Mode Base) */
+  --color-background-base: #0F172A;
+  --color-background-elevated: #1E293B;
+  --color-panel: #1B2436;
+  --color-surface-hover: #253044;
+
+  /* Borders */
+  --color-border-subtle: #243040;
+  --color-border-strong: #3A475C;
+
+  /* Typography */
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #CBD5E1;
+  --color-text-label: #64748B;
+}
+
+@theme inline {
+  /* Map CSS variables to Tailwind utilities */
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-700: var(--color-primary-700);
+  
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+  --color-info: var(--color-info);
+
+  --color-background-base: var(--color-background-base);
+  --color-background-elevated: var(--color-background-elevated);
+  --color-panel: var(--color-panel);
+  --color-surface-hover: var(--color-surface-hover);
+
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-strong: var(--color-border-strong);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-label: var(--color-text-label);
+
+  /* Custom Shadows */
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-glow-primary: 0 0 15px rgba(58, 134, 255, 0.1);
+}
+
+body {
+  background-color: var(--color-background-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Utilities */
+.text-page-title {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.text-panel-title {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.text-section-title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.text-body-m {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.text-body-s {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}

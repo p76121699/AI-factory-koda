@@ -56,3 +56,12 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Dev Scripts & Notes (Local Only)
+check_imports.py
+recover_factory.py
+verify_models.py
+*_star.md
+models.json
+interview_script_star.md
+project_summary_star.md
