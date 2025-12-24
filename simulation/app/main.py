@@ -74,7 +74,7 @@ async def run_simulation():
         await asyncio.sleep(sleep_time)
 
 app = FastAPI()
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def health_check():
     return {"status": "ok"}
 
