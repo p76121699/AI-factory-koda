@@ -6,6 +6,8 @@ import logging
 import os
 from .factory import Factory
 from .config import UPDATE_INTERVAL
+from fastapi import FastAPI
+import uvicorn
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
