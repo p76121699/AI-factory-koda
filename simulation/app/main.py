@@ -71,6 +71,11 @@ async def run_simulation():
         sleep_time = max(0, UPDATE_INTERVAL - elapsed)
         await asyncio.sleep(sleep_time)
 
+app = FastAPI()
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
 async def main():
     # Start WebSocket server
     port = int(os.environ.get("PORT", 8765))
