@@ -12,7 +12,8 @@ from pathlib import Path
 import re # [NEW] Regex for parsing AI commands
 
 # Load environment variables from backend/.env
-env_path = Path(__file__).parent / ".env"
+# Load environment variables from backend/.env
+env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 # Configure logging
