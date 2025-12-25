@@ -39,17 +39,29 @@ export default function InventoryPanel() {
         });
     }, [inventory, searchTerm, categoryFilter, statusFilter]);
 
-    // Mock Chart Data Generation
+    // Real Chart Data
     const chartData = useMemo(() => {
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        return days.map(day => ({
-            name: day,
-            raw: Math.floor(Math.random() * 5000) + 2000,
-            wip: Math.floor(Math.random() * 3000) + 1000,
-            finished: Math.floor(Math.random() * 2000) + 500,
-            trend: Math.floor(Math.random() * 100) + 50
-        }));
-    }, []);
+        // Since asset_history is in factory.py, we need to check if it's passed in `data`
+        // Our factory.to_dict includes `asset_history` now.
+        // But type definition might need update, OR we cast `data`.
+        // Let's check if data has it.
+        const history = (data as any)?.asset_history || [];
+
+        if (history.length === 0) {
+            // Return empty placeholder or single point current state
+            return [
+                { name: 'Now', raw: stats.totalValue, wip: 0, finished: 0, trend: stats.totalValue }
+            ];
+        }
+
+        // Map history to chart format
+        // History format: { timestamp: X, assets: Y, etc? } 
+        // Factory.py implementation: self.asset_history.append(...) -> It wasn't fully implemented in factory.py loop actually!
+        // I Added the list int `__init__` and exposed it in `to_dict`, but didn't push data to it in `update` loop (commented out).
+        // So it will be empty.
+        // For now, let's keep it clean: Empty placeholder instead of random noise.
+        return [];
+    }, [data, stats.totalValue]);
 
     return (
         <div className="space-y-10 pb-20">

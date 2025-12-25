@@ -107,7 +107,7 @@ export interface FactoryData {
 
 }
 
-export type PanelType = 'dashboard' | 'inventory' | 'orders' | 'production' | 'alerts';
+export type PanelType = 'dashboard' | 'inventory' | 'orders' | 'production' | 'alerts' | 'ai-assistant';
 
 export type AlertSeverity = "critical" | "high" | "medium" | "low";
 

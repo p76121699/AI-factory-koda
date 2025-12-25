@@ -16,6 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { id: 'orders', label: 'Orders', icon: ShoppingCart },
         { id: 'production', label: 'Production', icon: Activity },
         { id: 'alerts', label: 'Alerts', icon: Bell },
+        { id: 'ai-assistant', label: 'AI Assistant', icon: Zap },
     ];
 
     return (

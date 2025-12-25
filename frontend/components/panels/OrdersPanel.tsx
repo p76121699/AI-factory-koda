@@ -52,6 +52,10 @@ export default function OrdersPanel() {
         );
 
         result.sort((a, b) => {
+            // [FIX] Always put 'Ready' orders at the bottom
+            if (a.status === 'Ready' && b.status !== 'Ready') return 1;
+            if (a.status !== 'Ready' && b.status === 'Ready') return -1;
+
             if (sortKey === 'due') return new Date(a.due).getTime() - new Date(b.due).getTime();
             if (sortKey === 'progress') return b.progress - a.progress;
             if (sortKey === 'quantity') return b.quantity - a.quantity;
@@ -92,14 +96,20 @@ export default function OrdersPanel() {
                             </div>
                         </div>
                     )}
-                    {/* 
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                <div className="flex gap-2">
+                     <button
+                        onClick={async () => {
+                             if(confirm("Clear all completed orders?")) {
+                                 // Call backend prune API
+                                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                                 await fetch(`${apiUrl}/api/orders/prune`, { method: 'POST' });
+                             }
+                        }}
+                        className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 border border-gray-700"
                     >
-                        <Plus className="w-4 h-4" /> New Order
+                        <CheckCircle className="w-4 h-4" /> Clear Completed
                     </button>
-                    */}
+                    {/* New Order Button intentionally hidden/commented as per user request context */}
                 </div>
             </div>
 

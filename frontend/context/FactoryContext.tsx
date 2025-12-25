@@ -19,6 +19,7 @@ interface FactoryContextType {
     chatMessages: { role: string, content: string, actions?: string[], isLoading?: boolean }[];
     addChatMessage: (msg: { role: string, content: string, actions?: string[], isLoading?: boolean }) => void;
     setChatMessages: React.Dispatch<React.SetStateAction<{ role: string, content: string, actions?: string[], isLoading?: boolean }[]>>;
+    currentState: FactoryData | null; // Added for AIAssistantPanel compatibility
 }
 
 const FactoryContext = createContext<FactoryContextType | undefined>(undefined);
@@ -103,9 +104,6 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
         };
     }, []);
 
-    // Auto-expire logic (every 10s check)
-    // Removed mocked auto-expire since backend manages active alerts
-
     const addAlert = (newAlert: Alert) => {
         setAlerts(prev => [newAlert, ...prev]);
     };
@@ -138,7 +136,6 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
             console.log(`Command ${command} sent to ${id}`);
         } catch (error) {
             console.error("Control error:", error);
-            // Optional: Add an alert for the error
             addAlert({
                 id: Date.now().toString(),
                 machineId: id,
@@ -168,7 +165,8 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
             financials: data?.financials || null,
             chatMessages,
             addChatMessage,
-            setChatMessages
+            setChatMessages,
+            currentState: data // Expose data as currentState for compatibility
         }}>
             {children}
         </FactoryContext.Provider>
