@@ -22,7 +22,7 @@ class AICollaborator:
         if self.google_api_key and HAS_GOOGLE_AI:
             logger.info("Using Google Gemini API")
             genai.configure(api_key=self.google_api_key)
-            self.model_name = "gemini-pro"
+            self.model_name = "gemini-3-flash-preview"
             self.use_google = True
         else:
             logger.info("Using Local Ollama (Fallback)")
@@ -32,7 +32,7 @@ class AICollaborator:
 
     async def _call_gemini(self, prompt: str) -> str:
         try:
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-3-flash-preview')
             # Gemini runs synchronously in its basic form, so we wrap it
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: model.generate_content(prompt))

@@ -285,7 +285,7 @@ class Cutter(Machine):
              temp = self.metrics.get("temperature", 25.0)
              self.metrics["temperature"] = max(25.0, temp - 0.5 * dt)
 
-@dataclass
+
 @dataclass
 class Conveyor(Machine):
     process_duration: float = 5.0
