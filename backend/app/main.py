@@ -51,7 +51,7 @@ app.add_middleware(
 async def root():
     return {"message": "Smart Factory Backend is running"}
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     return {"status": "ok", "bridge_connected": data_bridge.running}
 

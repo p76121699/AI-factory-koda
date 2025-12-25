@@ -65,6 +65,11 @@ app = FastAPI(lifespan=lifespan)
 def health_check():
     return {"status": "ok"}
 
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check():
+    return {"status": "alive"}
+
+
 @app.websocket("/")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
