@@ -26,6 +26,36 @@ class DataBridge:
         self.action_history = [] # List of {timestamp, machine_id, command, resulting_temp?}
         self.running = False
 
+    async def reset_data(self):
+        """Hard Factory Reset: Clear DB and Simulation"""
+        try:
+            # 1. Clear Database
+            async with AsyncSessionLocal() as session:
+                from sqlalchemy import text
+                # Truncate tables (SQLite uses DELETE, Postgres uses TRUNCATE)
+                # For compatibility, let's use DELETE
+                from .models import Event, MachineState
+                from sqlalchemy import delete
+                
+                await session.execute(delete(Event))
+                await session.execute(delete(MachineState))
+                await session.commit()
+                logger.warning("Database Cleared via Reset")
+
+            # 2. Reset In-Memory State
+            self.active_alerts = {}
+            self.command_history = {}
+            self.latest_data = {}
+            self.action_history = []
+            
+            # 3. Send Reset to Simulation
+            await self.send_command({"machine_id": "SYSTEM", "command": "reset"})
+            
+            return True
+        except Exception as e:
+            logger.error(f"Reset Failed: {e}")
+            return False
+
     async def cleanup_old_data(self):
         """Delete data older than 30 days"""
         try:

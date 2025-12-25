@@ -55,6 +55,20 @@ async def root():
 async def health_check():
     return {"status": "ok", "bridge_connected": data_bridge.running}
 
+@app.post("/api/reset")
+async def factory_reset():
+    """Trigger full factory reset"""
+    result = await data_bridge.reset_data()
+    if result:
+        return {"status": "Reset Successful"}
+    return {"status": "Error", "message": "Reset failed"}, 500
+
+@app.post("/api/orders/prune")
+async def prune_orders():
+    """Manually trigger order cleanup"""
+    await data_bridge.send_command({"machine_id": "SYSTEM", "command": "prune_orders"})
+    return {"status": "Orders Pruned"}
+
 @app.get("/api/v1/latest")
 async def get_latest_data():
     return data_bridge.get_latest_data()
