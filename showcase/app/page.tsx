@@ -1,6 +1,7 @@
 import Hero from "@/components/Hero";
 import TechStack from "@/components/TechStack";
 import StarSection from "@/components/StarSection";
+import CodeCard from "@/components/CodeCard";
 import { Activity, Zap, CheckCircle2, TrendingUp } from "lucide-react";
 
 export default function Home() {
@@ -39,10 +40,22 @@ export default function Home() {
         ]}
       >
         <div className="grid grid-cols-2 gap-4 w-full h-full p-6">
-          <div className="bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">Real-time Sim</div>
-          <div className="bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">AI Reasoning</div>
-          <div className="bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">WebSocket Pipe</div>
-          <div className="bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">React Dashboard</div>
+          <CodeCard
+            title="Real-time Sim"
+            codeSnippet={`class Factory:\n  async def update(self):\n    for m in self.machines:\n       m.tick(dt)`}
+          />
+          <CodeCard
+            title="AI Reasoning"
+            codeSnippet={`response = await gemini.generate(\n  f"Analyze errors: {logs}"\n)`}
+          />
+          <CodeCard
+            title="WebSocket Pipe"
+            codeSnippet={`@app.websocket("/ws")\nasync def stream(ws):\n  while True:\n    await ws.send_json(state)`}
+          />
+          <CodeCard
+            title="React Dashboard"
+            codeSnippet={`useEffect(() => {\n  if (lastMessage)\n    updateGraph(data)\n}, [lastMessage])`}
+          />
         </div>
       </StarSection>
 

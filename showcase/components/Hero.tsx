@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 
 export default function Hero() {
+    const apiUrl = process.env.FRONTEND_API_URL || "http://localhost:3000";
     return (
         <section className="h-screen w-full flex flex-col items-center justify-center bg-black text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black" />
@@ -26,11 +27,11 @@ export default function Hero() {
                 </p>
 
                 <a
-                    href="http://localhost:3000"
+                    href={apiUrl}
                     target="_blank"
                     className="bg-white text-black px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform inline-flex items-center gap-2"
                 >
-                    Launch Simulation
+                    Launch Simulation (Deployed)
                 </a>
             </motion.div>
 
