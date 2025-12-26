@@ -212,20 +212,20 @@ class Machine:
 class Cutter(Machine):
     def __post_init__(self):
         super().__post_init__()
-        self.parts = [Part(name="Blade", wear_rate=0.002)]
+        self.parts = [Part(name="Blade", wear_rate=0.00075)]
 
     def update(self, dt: float):
         if self.status == "RUNNING":
             # Simulate Physics
             # Speed Control: Use setting or default 3000
-            target_speed = self.metrics.get("speed_setting", 3000.0)
+            target_speed = self.metrics.get("speed_setting", 1500.0)
             
             # Actual Speed = Target + Noise
             self.metrics["speed"] = target_speed + random.randint(-50, 50)
             
             # Temperature Rise is proportional to Speed^2 (Physics!)
             # Base rise at 3000rpm = ~1.5 degrees/sec
-            heat_factor = (self.metrics["speed"] / 3000.0) ** 2
+            heat_factor = (self.metrics["speed"] / 1500.0) ** 2
             
             temp = self.metrics.get("temperature", 25.0)
             heating = (random.uniform(0.8, 1.8) * heat_factor) * dt
@@ -237,12 +237,12 @@ class Cutter(Machine):
             self.metrics["temperature"] = max(25.0, temp + heating - cooling)
             
             # Additional Mock Metrics
-            self.metrics["vibration"] = random.uniform(0.1, 2.5) + (temp / 100.0) * (self.metrics["speed"] / 3000.0)
+            self.metrics["vibration"] = random.uniform(0.1, 2.5) + (temp / 100.0) * (self.metrics["speed"] / 1500.0)
             self.metrics["tool_wear"] = self.metrics.get("tool_wear", 0.0) + (0.001 * dt * heat_factor)
             
             # Update Parts
             for p in self.parts:
-                p.wear += p.wear_rate * (self.metrics["speed"] / 3000.0) * dt
+                p.wear += p.wear_rate * (self.metrics["speed"] / 1500.0) * dt
             
             # Check Failure
             failed, reason = self.calculate_failure_risk()
@@ -255,7 +255,7 @@ class Cutter(Machine):
             if self.processing_product:
                 # [FIX] Production Speed is proportional to RPM
                 # If speed is 3000, factor is 1.0. If 1500, factor is 0.5 (slower).
-                speed_factor = max(0.1, self.metrics["speed"] / 3000.0)
+                speed_factor = max(0.1, self.metrics["speed"] / 1500.0)
                 self.process_timer -= dt * speed_factor
                 
                 if self.process_timer <= 0:
@@ -307,7 +307,7 @@ class Conveyor(Machine):
              
              # Dynamic Speed: Heavy load slows down the belt slightly
              # Base Speed from AI setting (default 1.2)
-             base_speed = self.metrics.get("target_speed", 1.2)
+             base_speed = self.metrics.get("target_speed", 0.8)
              
              jitter = random.uniform(-0.02, 0.02)
              # Apply load friction
@@ -323,7 +323,7 @@ class Conveyor(Machine):
              
              if self.processing_product:
                 # [FIX] Throughput proportional to speed (Base 1.2 m/s)
-                speed_factor = max(0.1, self.metrics["speed"] / 1.2)
+                speed_factor = max(0.1, self.metrics["speed"] / 0.8)
                 self.process_timer -= dt * speed_factor
                 
                 if self.process_timer <= 0:
@@ -386,8 +386,8 @@ class RobotArm(Machine):
 
             if self.processing_product:
                 # [FIX] Throughput proportional to efficiency (100% base)
-                eff = self.metrics.get("efficiency", 100.0)
-                self.process_timer -= dt * (eff / 100.0)
+                eff = self.metrics.get("efficiency", 80.0)
+                self.process_timer -= dt * (eff / 80.0)
                 
                 if self.process_timer <= 0:
                     self.output_buffer.append(self.processing_product)
@@ -455,7 +455,7 @@ class Packer(Machine):
     
     def __post_init__(self):
         super().__post_init__()
-        self.parts = [Part(name="Pneumatics", wear_rate=0.001)]
+        self.parts = [Part(name="Pneumatics", wear_rate=0.0005)]
     def update(self, dt: float):
         if self.status == "RUNNING":
             for p in self.parts:
