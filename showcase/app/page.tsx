@@ -39,7 +39,7 @@ export default function Home() {
           "The system needed to process thousands of events per second with sub-50ms latency to the operator dashboard."
         ]}
       >
-        <div className="grid grid-cols-2 gap-4 w-full h-full p-6">
+        <div className="grid grid-cols-2 gap-4 w-full h-full p-6 place-content-center">
           <CodeCard
             title="Real-time Sim"
             codeSnippet={`class Factory:\n  async def update(self):\n    for m in self.machines:\n       m.tick(dt)`}
@@ -83,7 +83,7 @@ export default function Home() {
         title="Efficiency Reimagined"
         align="right"
         content={[
-          "The result is a self-healing manufacturing ecosystem. The AI Agent successfully predicts and prevents 40% of simulated failures.",
+          "The result is a self-healing manufacturing ecosystem. The AI Agent autonomously intervenes to resolve anomalies, preventing prolonged downtime.",
           "Operators now have a 'God-view' of the floor, with real-time energy metrics enabling immediate cost-saving decisions.",
           "The project demonstrates that Large Language Models can effectively move beyond chat windows to control physical industrial processes."
         ]}
