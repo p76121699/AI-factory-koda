@@ -25,6 +25,14 @@ class DataBridge:
         self.last_cleanup = 0
         self.action_history = [] # List of {timestamp, machine_id, command, resulting_temp?}
         self.running = False
+        self.autonomy_enabled = True # [NEW] Persist Autonomy State (In-memory for now, could be DB)
+
+    def set_autonomy(self, enabled: bool):
+        self.autonomy_enabled = enabled
+        logger.info(f"Autonomy System Set to: {enabled}")
+
+    def get_autonomy(self) -> bool:
+        return self.autonomy_enabled
 
     async def reset_data(self):
         """Hard Factory Reset: Clear DB and Simulation"""
@@ -358,6 +366,7 @@ class DataBridge:
 
         # Attach alerts to data
         data['alerts'] = current_alerts
+        data['autonomy_enabled'] = self.autonomy_enabled # [NEW] Broadcast state
         self.latest_data = data
 
     async def _run_ai_analysis(self, anomaly: dict, anomaly_key: str, alert_id: str):
@@ -397,6 +406,13 @@ class DataBridge:
             # [DEBUG] Force print AI output to diagnose "Loss of Control"
             logger.info(f"DEBUG AI RAW: {result}")
             
+            # [NEW] Check Autonomy Flag
+            if not self.autonomy_enabled:
+                # Still run analysis for logging, but DO NOT execute actions
+                if result.get("action_needed"):
+                    logger.info("AI Autonomy Logic triggerd, but system is DISABLED. Skipping actions.")
+                return
+
             if result.get("action_needed"):
                 actions = result.get("actions", [])
                 

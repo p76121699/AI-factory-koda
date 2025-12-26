@@ -10,6 +10,7 @@ import os
 import os
 from pathlib import Path
 import re # [NEW] Regex for parsing AI commands
+from pydantic import BaseModel # [FIX] Top Level Import
 
 # Load environment variables from backend/.env
 # Load environment variables from backend/.env
@@ -69,6 +70,18 @@ async def prune_orders():
     await data_bridge.send_command({"machine_id": "SYSTEM", "command": "prune_orders"})
     return {"status": "Orders Pruned"}
 
+class AutonomyRequest(BaseModel):
+    enabled: bool
+
+@app.get("/api/autonomy")
+async def get_autonomy():
+    return {"enabled": data_bridge.get_autonomy()}
+
+@app.post("/api/autonomy")
+async def set_autonomy(request: AutonomyRequest):
+    data_bridge.set_autonomy(request.enabled)
+    return {"status": "success", "enabled": request.enabled}
+
 @app.get("/api/v1/latest")
 async def get_latest_data():
     return data_bridge.get_latest_data()
@@ -110,6 +123,7 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 # Background task to push data to frontend
+
 async def push_to_frontend():
     logger.info("Push task started")
     while True:
@@ -125,7 +139,6 @@ async def push_to_frontend():
 
 # AI Module
 from .ai import AICollaborator
-from pydantic import BaseModel
 
 ai_agent = AICollaborator()
 

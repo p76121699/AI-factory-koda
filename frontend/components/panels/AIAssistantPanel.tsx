@@ -4,14 +4,45 @@ import { useFactory } from '../../context/FactoryContext';
 export default function AIAssistantPanel() {
     const { currentState, activePanel } = useFactory();
     const [resetting, setResetting] = useState(false);
-    const [autonomyEnabled, setAutonomyEnabled] = useState(true); // Mock state for now, backend sync later
+    const [autonomyEnabled, setLocalAutonomy] = useState(true);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+    // Sync with Backend on Mount
+    React.useEffect(() => {
+        fetch(`${apiUrl}/api/autonomy`)
+            .then(res => res.json())
+            .then(data => setLocalAutonomy(data.enabled))
+            .catch(err => console.error("Failed to fetch autonomy status:", err));
+    }, []);
+
+    // Also sync if valid data comes in stream (optional, but good for multi-client)
+    React.useEffect(() => {
+        if (currentState?.autonomy_enabled !== undefined) {
+            setLocalAutonomy(currentState.autonomy_enabled);
+        }
+    }, [currentState?.autonomy_enabled]);
+
+    const toggleAutonomy = async () => {
+        const newState = !autonomyEnabled;
+        setLocalAutonomy(newState); // Optimistic update
+
+        try {
+            await fetch(`${apiUrl}/api/autonomy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: newState })
+            });
+        } catch (e) {
+            console.error("Failed to set autonomy:", e);
+            setLocalAutonomy(!newState); // Revert
+        }
+    };
 
     const handleReset = async () => {
         if (!window.confirm("WARNING: This will wipe all database records and reset the simulation. Are you sure?")) return;
 
         setResetting(true);
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             const res = await fetch(`${apiUrl}/api/reset`, { method: 'POST' });
             if (res.ok) {
                 alert("Factory Reset Successful. The system is rebooting...");
@@ -58,7 +89,7 @@ export default function AIAssistantPanel() {
                     <div className="flex items-center gap-4 mt-6">
                         <label className="flex items-center cursor-pointer">
                             <div className="relative">
-                                <input type="checkbox" className="sr-only" checked={autonomyEnabled} onChange={() => setAutonomyEnabled(!autonomyEnabled)} />
+                                <input type="checkbox" className="sr-only" checked={autonomyEnabled} onChange={toggleAutonomy} />
                                 <div className={`block w-14 h-8 rounded-full transition-colors ${autonomyEnabled ? 'bg-blue-600' : 'bg-gray-600'}`}></div>
                                 <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${autonomyEnabled ? 'transform translate-x-6' : ''}`}></div>
                             </div>

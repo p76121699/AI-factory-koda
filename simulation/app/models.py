@@ -108,8 +108,10 @@ class Machine:
     # Buffers
     
     # Buffers
+    # Buffers
     input_buffer: List[Product] = field(default_factory=list)
     output_buffer: List[Product] = field(default_factory=list)
+    capacity: int = 5 # [NEW] Max input buffer size
     processing_product: Optional[Product] = None
     process_timer: float = 0.0
     process_duration: float = 2.0 # Seconds to process one item
@@ -289,11 +291,12 @@ class Cutter(Machine):
 @dataclass
 class Conveyor(Machine):
     process_duration: float = 5.0
+    capacity: int = 10 # [NEW] Larger buffer for conveyor
     
     def __post_init__(self):
         super().__post_init__()
         # [FIX] Significantly reduced wear rates (10x slower) to prevent rapid breakdown
-        self.parts = [Part(name="Belt", wear_rate=0.00005), Part(name="Motor", wear_rate=0.00002)]
+        self.parts = [Part(name="Belt", wear_rate=0.000005), Part(name="Motor", wear_rate=0.000002)]
     
     def update(self, dt: float):
         if self.status == "RUNNING":
@@ -312,7 +315,8 @@ class Conveyor(Machine):
              self.metrics["speed"] = self.speed
 
              # Wear increases with load
-             load_factor = 1.0 + (current_load * 0.2)
+             # [FIX] Cap load factor clearly to prevent explosion
+             load_factor = min(3.0, 1.0 + (current_load * 0.1)) 
              for p in self.parts:
                  # [FIX] Clamp wear at 1.0 (100%)
                  p.wear = min(1.0, p.wear + p.wear_rate * dt * load_factor)

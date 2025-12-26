@@ -30,10 +30,20 @@ class ProductionLine:
             curr_m = self.machines[i]
             next_m = self.machines[i+1]
             
-            # If current machine has output and next machine is not full (simplified infinite buffer for now)
+            # If current machine has output
             while curr_m.output_buffer:
+                # [FIX] Check Capacity of Next Machine
+                if len(next_m.input_buffer) >= next_m.capacity:
+                    # BLOCKED
+                    # curr_m.status = "BLOCKED" (Optional: status update)
+                    break 
+                
                 product = curr_m.output_buffer.pop(0)
                 next_m.input_buffer.append(product)
+                
+                # If we were starved/idle, wake up
+                if next_m.status in ["IDLE", "STARVED"]:
+                    next_m.status = "RUNNING"
                 
         # Update individual machines
         for m in self.machines:
