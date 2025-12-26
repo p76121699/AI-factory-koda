@@ -296,7 +296,7 @@ class Conveyor(Machine):
     def __post_init__(self):
         super().__post_init__()
         # [FIX] Significantly reduced wear rates (10x slower) to prevent rapid breakdown
-        self.parts = [Part(name="Belt", wear_rate=0.000005), Part(name="Motor", wear_rate=0.000002)]
+        self.parts = [Part(name="Belt", wear_rate=0.0005), Part(name="Motor", wear_rate=0.0002)]
     
     def update(self, dt: float):
         if self.status == "RUNNING":
@@ -362,7 +362,7 @@ class RobotArm(Machine):
     
     def __post_init__(self):
         super().__post_init__()
-        self.parts = [Part(name="Servos", wear_rate=0.001), Part(name="Gripper", wear_rate=0.003)]
+        self.parts = [Part(name="Servos", wear_rate=0.0001), Part(name="Gripper", wear_rate=0.0003)]
     def update(self, dt: float):
         if self.status == "RUNNING":
             load = self.metrics.get("load", 0.0)

@@ -280,8 +280,39 @@ class Factory:
                 fin.quantity = max(0, fin.quantity - order["quantity"])
 
     def _init_orders(self) -> List[Dict[str, Any]]:
-        # Initialize with no orders, let the system generate them naturally based on time
-        return []
+        # Initialize with starter orders
+        return [
+            {
+                "id": "ORD-START-001",
+                "customer": "TechCorp Inc.",
+                "product": "Smart Watch Pro",
+                "quantity": 50,
+                "progress": 0,
+                "status": "Pending",
+                "due": "2024-02-01",
+                "fulfilled": 0
+            },
+            {
+                "id": "ORD-START-002",
+                "customer": "EduSystems",
+                "product": "Smart Watch X1",
+                "quantity": 30,
+                "progress": 0,
+                "status": "Pending",
+                "due": "2024-02-02",
+                "fulfilled": 0
+            },
+            {
+                "id": "ORD-START-003",
+                "customer": "AutoMotive Group",
+                "product": "Sensor Module",
+                "quantity": 100,
+                "progress": 0,
+                "status": "Pending",
+                "due": "2024-02-05",
+                "fulfilled": 0
+            }
+        ]
 
     def _generate_new_orders(self):
         # 2. Random New Orders
