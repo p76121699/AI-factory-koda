@@ -32,7 +32,7 @@ class AICollaborator:
 
     async def _call_gemini(self, prompt: str) -> str:
         try:
-            model = genai.GenerativeModel('gemini-2.0-flash-001')
+            model = genai.GenerativeModel('gemini-2.0-pro')
             # Gemini runs synchronously in its basic form, so we wrap it
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(None, lambda: model.generate_content(prompt))
