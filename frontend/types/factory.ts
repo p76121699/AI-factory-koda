@@ -104,6 +104,7 @@ export interface FactoryData {
         energy_usage: number;
         defect_rate: number;
     };
+    autonomy_enabled?: boolean; // [NEW] Syncs with backend state
 
 }
 
