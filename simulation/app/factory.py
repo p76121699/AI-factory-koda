@@ -65,6 +65,7 @@ class Factory:
         self.orders: List[Dict[str, Any]] = self._init_orders()
         self.total_revenue: float = 0.0
         self.total_costs: float = 0.0
+        self.total_energy_kwh: float = 0.0 # [NEW] Real Energy Tracking
         self.cash_balance: float = INITIAL_CAPITAL
         self.asset_history: List[Dict[str, float]] = [] # Track daily/hourly assets
         
@@ -92,6 +93,38 @@ class Factory:
             m = line.get_machine(machine_id)
             if m: return m
         return None
+
+    def reset(self):
+        """Hard Factory Reset"""
+        self.cash_balance = INITIAL_CAPITAL
+        self.total_costs = 0.0
+        self.total_revenue = 0.0
+        self.total_energy_kwh = 0.0
+        self.orders = []
+        self.finished_products = []
+        self.inventory = self._init_inventory()
+        self.asset_history = []
+        
+        # Reset Machines & Workers
+        self.workers = [
+            Worker(id=f"W-{i+1}", name=f"Worker {i+1}", location="HUB") 
+            for i in range(WORKER_COUNT)
+        ]
+        # Re-init Lines
+        self.lines = [
+            ProductionLine("L1", "Line A", "Smart Watch Pro"),
+            ProductionLine("L2", "Line B", "Smart Watch X1"),
+            ProductionLine("L3", "Line C", "Sensor Module")
+        ]
+
+    def prune_orders(self):
+        """Clean up old finished orders"""
+        now = time.time()
+        # Remove Ready orders older than 24 hours (86400s)
+        self.orders = [
+            o for o in self.orders 
+            if not (o.get("status") == "Ready" and (now - o.get("completed_at", 0)) > 86400)
+        ]
 
     def _dispatch_orders(self):
         # Assign Pending/Assembly orders to available lines
@@ -225,6 +258,7 @@ class Factory:
         
         if order["progress"] >= 100:
             order["status"] = "Ready"
+            if "completed_at" not in order: order["completed_at"] = time.time()
             # Cash Settlement (Payment received)
             order_value = order["quantity"] * PRODUCT_PRICE
             self.cash_balance += order_value
@@ -262,17 +296,26 @@ class Factory:
         self.cash_balance -= wages
         
         # Power & Energy Costs
-        energy_cost_tick = 0.0
+        # [FIX] Real Energy Calculation
+        energy_this_tick = 0.0
         for line in self.lines:
             for m in line.machines:
                  if m.status == "RUNNING":
-                     speed = m.metrics.get("speed", 0)
-                     # 1000 RPM ~ 1 kW? Let's use config.
-                     # Est: 1.5 kW avg per machine running
-                     energy_cost_tick += (1.5 * dt / 3600.0) * ENERGY_COST_PER_KWH
+                     # Base load + Speed load
+                     # Assumed: Machine uses ~0.5kW idle/support, + 1kW per 1000 speed/efficiency units roughly
+                     # Simplified: 2.0 kW per machine running avg
+                     power_kw = 2.0 
+                     
+                     # Detailed per type override
+                     if m.type == "Cutter": power_kw = 3.0 + (m.metrics.get("speed", 1000)/1000.0)
+                     elif m.type == "Conveyor": power_kw = 0.5 + m.metrics.get("speed", 1.0)
+                     
+                     energy_kwh = power_kw * (dt / 3600.0) # kW * hours
+                     energy_this_tick += energy_kwh
         
-        self.total_costs += energy_cost_tick
-        self.cash_balance -= energy_cost_tick
+        self.total_energy_kwh += energy_this_tick
+        self.total_costs += (energy_this_tick * ENERGY_COST_PER_KWH)
+        self.cash_balance -= (energy_this_tick * ENERGY_COST_PER_KWH)
 
         # Identify broken machines
         broken_machines = []
@@ -318,16 +361,7 @@ class Factory:
         # Update Operational Costs (Wages)
         self.total_costs += (WORKER_HOURLY_WAGE / 3600.0) * dt * len(self.workers)
         
-        # Power & Energy Costs
-        # Higher Speed = Higher Power Consumption
-        energy_cost_tick = 0.0
-        for line in self.lines:
-            for m in line.machines:
-                 if m.status == "RUNNING":
-                     speed = m.metrics.get("speed", 0)
-                     # 1000 RPM ~ $0.10 / sec rate (Mock)
-                     energy_cost_tick += (speed / 1000.0) * 0.1 * dt
-        self.total_costs += energy_cost_tick
+
 
         # Identify broken machines
         broken_machines = []
@@ -539,6 +573,15 @@ class Factory:
         return random.randint(1, 4)
 
     def control_machine(self, machine_id: str, command: str):
+        # [NEW] Handle System Commands
+        if machine_id == "SYSTEM":
+            if command == "reset":
+                self.reset()
+                return True
+            if command == "prune_orders":
+                self.prune_orders()
+                return True
+
         print(f"DEBUG: Factory.control_machine received: {machine_id} -> {command}") # Debug Log
         m = self.get_machine(machine_id)
         if m:
@@ -640,9 +683,9 @@ class Factory:
         avg_efficiency = total_efficiency / max(1, machine_count)
         
         # Fallback if energy not tracked in machine
+        # Fallback if energy not tracked in machine
         if total_energy == 0:
-             # Estimate: Energy is roughly portion of costs
-             total_energy = (self.total_costs * 0.2) / ENERGY_COST_PER_KWH
+             total_energy = self.total_energy_kwh
 
         avg_cycle_time = 4.2 # Mock baseline
         if total_output > 0:

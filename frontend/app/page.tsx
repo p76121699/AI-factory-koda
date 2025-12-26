@@ -8,6 +8,7 @@ import InventoryPanel from '../components/panels/InventoryPanel';
 import OrdersPanel from '../components/panels/OrdersPanel';
 import ProductionPanel from '../components/panels/ProductionPanel';
 import AlertsPanel from '../components/panels/AlertsPanel';
+import AIAssistantPanel from '../components/panels/AIAssistantPanel';
 import FloatingAssistant from '../components/dashboard/FloatingAssistant';
 
 function AppContent() {
@@ -20,6 +21,7 @@ function AppContent() {
       {activePanel === 'orders' && <OrdersPanel />}
       {activePanel === 'production' && <ProductionPanel />}
       {activePanel === 'alerts' && <AlertsPanel />}
+      {activePanel === 'ai-assistant' && <AIAssistantPanel />}
 
       <FloatingAssistant />
     </AppLayout>

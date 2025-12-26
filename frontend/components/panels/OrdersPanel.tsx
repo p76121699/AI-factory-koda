@@ -7,38 +7,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import { useFactory } from '../../context/FactoryContext';
 
-
-
 export default function OrdersPanel() {
     const { data, connected } = useFactory();
     const orders = data?.orders || [];
     const financials = data?.financials;
 
-    // const [orders, setOrders] = useState<OrderModel[]>([]); // Removed local state
     // Loading state is now effectively "not connected" or "no data yet"
     const loading = !data && !connected;
 
-    // const [loading, setLoading] = useState(true); // Removed
-    // const [error, setError] = useState<string | null>(null); // Removed
     const [searchKeyword, setSearchKeyword] = useState("");
     const [sortKey, setSortKey] = useState<'due' | 'progress' | 'quantity' | 'status'>('due');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    // Removed fetchOrders and useEffect - data comes from WebSocket context automatically
-
     const handleCreateOrder = async (newOrder: Partial<OrderModel>) => {
-        // In a real app, we would POST to an API to create the order.
-        // For this simulation, since there's no POST /orders endpoint yet, 
-        // we can either mock it or add it.
-        // But the user requested "Connecting to Frontend", and simulation factory.py has orders[]
-        // However, factory.py creates random orders. It doesn't listen to a CREATE event yet via API/Websocket.
-        // For now, let's keep the mock API call BUT it won't actually update the server state unless we implement a backend endpoint.
-        // Wait, to keep it simple and working: we can just "simulate" the order creation on the server side?
-        // Actually, the `mockApi` was removed. 
-        // Let's implement a POST request to backend later if needed.
-        // For now, just close modal and alert "Coming Soon" or similar?
-        // OR: Since the user wants "Game", maybe we just trust the simulation generates orders?
-        // Let's re-add a placeholder handler.
+        // Placeholder for future backend implementation
         alert("Order creation API not yet implemented in backend simulation. This feature will come in next update.");
         setIsCreateModalOpen(false);
     };
@@ -96,20 +78,20 @@ export default function OrdersPanel() {
                             </div>
                         </div>
                     )}
-                <div className="flex gap-2">
-                     <button
-                        onClick={async () => {
-                             if(confirm("Clear all completed orders?")) {
-                                 // Call backend prune API
-                                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-                                 await fetch(`${apiUrl}/api/orders/prune`, { method: 'POST' });
-                             }
-                        }}
-                        className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 border border-gray-700"
-                    >
-                        <CheckCircle className="w-4 h-4" /> Clear Completed
-                    </button>
-                    {/* New Order Button intentionally hidden/commented as per user request context */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={async () => {
+                                if (confirm("Clear all completed orders?")) {
+                                    // Call backend prune API
+                                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                                    await fetch(`${apiUrl}/api/orders/prune`, { method: 'POST' });
+                                }
+                            }}
+                            className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 border border-gray-700"
+                        >
+                            <CheckCircle className="w-4 h-4" /> Clear Completed
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -182,7 +164,6 @@ export default function OrdersPanel() {
 
 function OrderCard({ order }: { order: OrderModel }) {
     const { data } = useFactory();
-    const producingLine = data?.lines.find(l => l.product_type === order.product);
 
     return (
         <motion.div
@@ -205,7 +186,7 @@ function OrderCard({ order }: { order: OrderModel }) {
                         {order.priority === 'High' && <span className="px-1.5 py-0.5 bg-red-900/30 text-red-400 text-[10px] uppercase font-bold rounded border border-red-800 shrink-0">High</span>}
                     </div>
                     <p className="text-xs text-gray-500 truncate">{order.id} • {order.product}</p>
-                    {/* [FIX] Use Backend-provided description for accurate Line info (Load Balancing) */}
+                    {/* Use Backend-provided description for accurate Line info (Load Balancing) */}
                     {(order as any).description && (
                         <p className="text-xs text-blue-400 mt-0.5 flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
