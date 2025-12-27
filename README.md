@@ -43,8 +43,8 @@ Unlike traditional dashboards that only *show* data, this system **understands**
 
 ## 🌍 Live Demo
 *The system is currently deployed and accessible via:*
-- **Dashboard**: [Link to Vercel Deployment]
-- **API Docs**: [Link to Render Backend]/docs
+- **Dashboard**: [\[Link to Vercel Deployment\]](https://ai-factory-koda.vercel.app/)
+- **API Docs**: [\[Link to Render Backend\]](https://ai-factory-koda.onrender.com/docs#/)
 
 *(Note: If running locally, please see the Developer Guide below)*
 
@@ -67,3 +67,6 @@ If you wish to run the simulation locally:
    # Terminal 3: Frontend
    cd frontend && npm run dev
    ```
+4.  **Access the App**
+    *   Frontend: `http://localhost:3000`
+    *   Backend API Docs: `http://localhost:8000/docs`

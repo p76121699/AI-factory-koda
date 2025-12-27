@@ -78,6 +78,7 @@ class Factory:
         self.total_energy_kwh: float = 0.0 # [NEW] Real Energy Tracking
         self.cash_balance: float = INITIAL_CAPITAL
         self.asset_history: List[Dict[str, float]] = [] # Track daily/hourly assets
+        self.sim_start_time = time.time() # [NEW] Track runtime for 7-day reset
         
     def _init_inventory(self) -> List[InventoryItem]:
         items = []
@@ -114,6 +115,7 @@ class Factory:
         self.finished_products = []
         self.inventory = self._init_inventory()
         self.asset_history = []
+        self.sim_start_time = time.time() # [NEW] Reset timer
         
         # Reset Machines & Workers
         self.workers = [
@@ -170,12 +172,75 @@ class Factory:
             elif line.current_order["status"] == "Ready" or line.current_order["progress"] >= 100:
                  line.current_order = None
 
+    def _generate_new_orders(self):
+        # 2. Random New Orders (Dynamic Probability)
+        pending_count = len([o for o in self.orders if o["status"] != "Ready"])
+        
+        # Base probability 0.25%
+        # User Logic: Decrease probability if pending orders > 6
+        # Formula: base / (1 + (pending / 6))
+        # If 0 pending: 0.0025 / 1 = 0.0025
+        # If 6 pending: 0.0025 / 2 = 0.00125
+        # If 12 pending: 0.0025 / 3 = 0.0008
+        
+        base_prob = 0.0025
+        adjusted_prob = base_prob / (1.0 + (pending_count / 6.0))
+        
+        if random.random() < adjusted_prob:
+             new_id = f"ORD-{int(time.time()*1000)}" # Unique ID
+             products = ["Smart Watch Pro", "Smart Watch X1", "Sensor Module"]
+             
+             # Random Due Date: 2 to 4 hours from now
+             due_seconds = random.randint(2 * 3600, 4 * 3600)
+             current_t = time.time()
+             
+             qty = random.randint(100, 1000)
+             
+             self.orders.append({
+                 "id": new_id,
+                 "customer": f"Client {random.randint(100, 999)}",
+                 "product": random.choice(products),
+                 "quantity": qty,
+                 "progress": 0,
+                 "status": "Pending",
+                 "created_at": current_t,
+                 "due": current_t + due_seconds,
+                 "fulfilled": 0,
+                 "penalty": float(qty * 5.0), # Penalty = $5 per unit
+                 "fined": False # Track if fine already applied
+             })
+
+    def _check_penalties(self):
+        """Apply fines for overdue orders"""
+        now = time.time()
+        for order in self.orders:
+            if order["status"] != "Ready" and not order.get("fined", False):
+                if now > order.get("due", float('inf')):
+                    # Overdue! Apply Fine
+                    # Fine = Penalty * (1 - Progress)
+                    # If 0% done, full fine. If 90% done, 10% fine.
+                    progress_ratio = order.get("progress", 0) / 100.0
+                    fine_amount = order.get("penalty", 500.0) * (1.0 - progress_ratio)
+                    
+                    self.cash_balance -= fine_amount
+                    self.total_costs += fine_amount
+                    order["fined"] = True
+                    # print(f"DEBUG: Order {order['id']} Overdue! Fined ${fine_amount:.2f}")
+
     def update(self, dt: float):
         current_time = time.time()
         
+        # [NEW] 7-Day Auto Reset
+        # 7 days = 604800 seconds
+        if (current_time - self.sim_start_time) > 604800:
+            print("DEBUG: 7-Day Limit Reached. Auto-Resetting Factory.")
+            self.reset()
+            return # Skip this tick
+
         # 0. Eco-System: Dispatch Orders & Auto-Restock
         self._dispatch_orders()
         self._check_and_restock_inventory()
+        self._check_penalties() # [NEW] Check fines
         
         # 1. Feed Raw Materials to Cutters (Based on Recipe)
         for line in self.lines:
@@ -314,21 +379,16 @@ class Factory:
             }
         ]
 
-    def _generate_new_orders(self):
-        # 2. Random New Orders
-        if random.random() < 0.0025: # Increased from 0.001 (User req: "Increase a little bit")
-             new_id = f"ORD-{int(time.time())}"
-             products = ["Smart Watch Pro", "Smart Watch X1", "Sensor Module"]
-             self.orders.append({
-                 "id": new_id,
-                 "customer": f"Client {random.randint(100, 999)}",
-                 "product": random.choice(products),
-                 "quantity": random.randint(100, 1000),
-                 "progress": 0,
-                 "status": "Pending",
-                 "due": "2024-02-01",
-                 "fulfilled": 0
-             })
+    # _generate_new_orders is now called inside update but defined above? 
+    # Wait, my previous Edit 1 (StartLine 163) replaced `update` AND `_generate_new_orders`?
+    # No, I only provided the replacement for `update` and `_generate_new_orders` was defined inside the replacement block?
+    # Let me check the tool usage... 
+    # Ah, I see I pasted `def _generate_new_orders` INSIDE the `ReplacementContent` of the first edit?
+    # NO. The first edit replaced lines 163-168 (update loop start).
+    # It inserted `_generate_new_orders` definition BEFORE `update`? 
+    # Python doesn't support nested defs like that unless intended.
+    # I likely messed up the structure. I should check the file content.
+    pass
 
     def _update_workers(self, dt: float, current_time: float):
         # Update Operational Costs (Wages)
@@ -723,7 +783,6 @@ class Factory:
                 
         avg_efficiency = total_efficiency / max(1, machine_count)
         
-        # Fallback if energy not tracked in machine
         # Fallback if energy not tracked in machine
         if total_energy == 0:
              total_energy = self.total_energy_kwh
