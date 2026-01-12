@@ -138,9 +138,11 @@ class DataBridge:
             return False
 
     async def process_data(self, data: dict):
+        logger.info("Bridge received data from simulation")
         timestamp = data.get("timestamp")
         
         # Prepare list for frontend
+        self.latest_data = data # [FIX] Update IMMEDIATELY to unblock UI
         current_alerts = []
 
         if not hasattr(self, 'command_history'): 
@@ -367,7 +369,8 @@ class DataBridge:
         # Attach alerts to data
         data['alerts'] = current_alerts
         data['autonomy_enabled'] = self.autonomy_enabled # [NEW] Broadcast state
-        self.latest_data = data
+        # self.latest_data = data # Moved to top
+        # logger.info("Bridge updated latest_data")
 
     async def _run_ai_analysis(self, anomaly: dict, anomaly_key: str, alert_id: str):
         """

@@ -346,6 +346,7 @@ class Factory:
 
     def _init_orders(self) -> List[Dict[str, Any]]:
         # Initialize with starter orders
+        now = time.time()
         return [
             {
                 "id": "ORD-START-001",
@@ -354,7 +355,7 @@ class Factory:
                 "quantity": 50,
                 "progress": 0,
                 "status": "Pending",
-                "due": "2024-02-01",
+                "due": now + 86400 * 2, # 2 days
                 "fulfilled": 0
             },
             {
@@ -364,7 +365,7 @@ class Factory:
                 "quantity": 30,
                 "progress": 0,
                 "status": "Pending",
-                "due": "2024-02-02",
+                "due": now + 86400 * 3, # 3 days
                 "fulfilled": 0
             },
             {
@@ -374,7 +375,7 @@ class Factory:
                 "quantity": 100,
                 "progress": 0,
                 "status": "Pending",
-                "due": "2024-02-05",
+                "due": now + 86400 * 5, # 5 days
                 "fulfilled": 0
             }
         ]
@@ -748,6 +749,7 @@ class Factory:
         return False
 
     def to_dict(self) -> Dict[str, Any]:
+        current_time = time.time()
         # Aggregate KPIs on the fly
         total_output = 0
         total_defects = 0

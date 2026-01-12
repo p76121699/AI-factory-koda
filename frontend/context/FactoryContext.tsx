@@ -47,7 +47,9 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const connect = () => {
             console.log("Attempting to connect to WebSocket...");
+            // [FIX] Explicitly default to localhost if env var is missing/empty
             const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://127.0.0.1:8000/ws/realtime";
+            console.log(`[FactoryContext] Connecting to WebSocket: ${wsUrl}`);
             ws.current = new WebSocket(wsUrl);
 
             ws.current.onopen = () => {
@@ -122,7 +124,7 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
 
     const controlMachine = async (id: string, command: 'start' | 'stop' | 'reset') => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
             const response = await fetch(`${apiUrl}/api/v1/machines/${id}/control`, {
                 method: 'POST',
                 headers: {

@@ -33,22 +33,28 @@ async def run_simulation():
     logger.info("Simulation Engine Started")
     
     while True:
-        start_time = time.time()
-        
-        # Update factory state
-        factory.update(UPDATE_INTERVAL)
-        
-        # Prepare data
-        data = factory.to_dict()
-        data["timestamp"] = time.time()
-        
-        # Broadcast data
-        await broadcast(data)
-        
-        # Wait for next tick
-        elapsed = time.time() - start_time
-        sleep_time = max(0, UPDATE_INTERVAL - elapsed)
-        await asyncio.sleep(sleep_time)
+        try:
+            start_time = time.time()
+            # logger.info("Sim Tick Start")
+            
+            # Update factory state
+            factory.update(UPDATE_INTERVAL)
+            
+            # Prepare data
+            data = factory.to_dict()
+            data["timestamp"] = time.time()
+            
+            # Broadcast data
+            await broadcast(data)
+            # logger.info("Sim Tick End (Broadcast)")
+            
+            # Wait for next tick
+            elapsed = time.time() - start_time
+            sleep_time = max(0, UPDATE_INTERVAL - elapsed)
+            await asyncio.sleep(sleep_time)
+        except Exception as e:
+            logger.error(f"Simulation Loop Crash: {e}", exc_info=True)
+            await asyncio.sleep(1)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -100,4 +106,4 @@ async def websocket_endpoint(websocket: WebSocket):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8765))
-    uvicorn.run("simulation.app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("simulation.app.main:app", host="0.0.0.0", port=port, reload=False)
