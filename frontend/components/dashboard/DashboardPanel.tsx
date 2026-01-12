@@ -9,8 +9,39 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DashboardPanel() {
     const { data, selectedMachine } = useFactory();
+    const [isTimeout, setIsTimeout] = React.useState(false);
+
+    React.useEffect(() => {
+        if (data) {
+            setIsTimeout(false);
+            return;
+        }
+        const timer = setTimeout(() => setIsTimeout(true), 8000);
+        return () => clearTimeout(timer);
+    }, [data]);
 
     if (!data) {
+        if (isTimeout) {
+            return (
+                <div className="flex flex-col items-center justify-center h-full text-red-400 space-y-4">
+                    <AlertTriangle className="w-12 h-12" />
+                    <div className="text-center">
+                        <h3 className="text-xl font-bold mb-2">Connection Timeout</h3>
+                        <p className="text-gray-400 max-w-md">
+                            The dashboard cannot connect to the factory simulation. <br />
+                            The system might be offline or restarting.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                        Retry Connection
+                    </button>
+                </div>
+            );
+        }
+
         return (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
