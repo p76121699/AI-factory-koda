@@ -443,6 +443,10 @@ class DataBridge:
                             "machine_id": mid,
                             "command": cmd
                         })
+                        
+                        # [FIX] Cap History to prevent Memory Leak
+                        if len(self.action_history) > 500:
+                             self.action_history.pop(0)
                     
                     # Notify Frontend via Alert (Optional, or just log event)
                     # We could inject a special "AI Action" alert or notification.

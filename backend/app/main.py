@@ -131,8 +131,7 @@ async def push_to_frontend():
             if data_bridge.latest_data:
                 await manager.broadcast(json.dumps(data_bridge.latest_data))
             else:
-                # [DEBUG] Log if data is empty to confirm if Bridge is receiving anything
-                pass # logger.debug("Bridge data empty...")
+                pass
         except Exception as e:
             logger.error(f"Push task error: {e}")
         

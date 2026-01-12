@@ -798,6 +798,32 @@ class Factory:
         # Assets Calculation
         inv_value = sum([i.quantity * i.cost_per_unit for i in self.inventory])
         total_assets = self.cash_balance + inv_value
+        
+        # [FIX] Cap History to last 1000 ticks to prevent Memory Leak
+        if len(self.asset_history) > 1000:
+             self.asset_history.pop(0)
+             
+        self.asset_history.append({
+            "time": current_time,
+            "cash": self.cash_balance,
+            "inventory": inv_value,
+            "total": total_assets
+        })
+        
+        return {
+            "timestamp": current_time,
+            "lines": [l.to_dict() for l in self.lines],
+            "financials": {
+                "revenue": self.total_revenue,
+                "costs": self.total_costs,
+                "profit": self.total_revenue - self.total_costs,
+                "cash": self.cash_balance,
+                "history": self.asset_history
+            },
+            "orders": self.orders,
+            "inventory": [i.to_dict() for i in self.inventory],
+            "energy_kwh": self.total_energy_kwh
+        }
 
         return {
             "lines": [l.to_dict() for l in self.lines],
