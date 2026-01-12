@@ -5,7 +5,7 @@ export default function AIAssistantPanel() {
     const { currentState, activePanel } = useFactory();
     const [resetting, setResetting] = useState(false);
     const [autonomyEnabled, setLocalAutonomy] = useState(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
     // Sync with Backend on Mount
     React.useEffect(() => {

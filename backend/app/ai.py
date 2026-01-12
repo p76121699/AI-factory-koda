@@ -175,9 +175,11 @@ class AICollaborator:
         You are an Intelligent Factory Manager. Optimize the factory.
         
         SCENARIOS:
+        SCENARIOS:
         - High Demand (>5 orders) -> Speed Up.
         - Low Demand (<2 orders) -> Slow Down.
-        - Overheat (>95C) -> Slow Down / Stop.
+        - Overheat (>80C) -> Slow Down / Stop (PRIORITY).
+        - SAFETY FIRST: If machine is hot, reduce speed regardless of demand.
         
         RESPONSE FORMAT (Valid JSON ONLY):
         {{
@@ -192,6 +194,10 @@ class AICollaborator:
             ]
         }}
         """
+        
+        # [NEW] Inject System Override for Safety
+        # This acts as a pre-prompt instruction
+        prompt_text += "\nSYSTEM ALERT: Monitor Temperatures closely. Do not increase speed if temp > 80C."
         
         try:
             content = await self._generate_response(prompt_text)

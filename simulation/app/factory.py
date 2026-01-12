@@ -131,11 +131,10 @@ class Factory:
 
     def prune_orders(self):
         """Clean up old finished orders"""
-        now = time.time()
-        # Remove Ready orders older than 24 hours (86400s)
+        # User Request: Clear ALL Completed orders immediately
         self.orders = [
             o for o in self.orders 
-            if not (o.get("status") == "Ready" and (now - o.get("completed_at", 0)) > 86400)
+            if o.get("status") != "Ready"
         ]
 
     def _dispatch_orders(self):

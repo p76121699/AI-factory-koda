@@ -25,7 +25,9 @@ class DataBridge:
         self.last_cleanup = 0
         self.action_history = [] # List of {timestamp, machine_id, command, resulting_temp?}
         self.running = False
+        self.running = False
         self.autonomy_enabled = True # [NEW] Persist Autonomy State (In-memory for now, could be DB)
+        self.safety_locks = {} # [NEW] machine_id -> timestamp (release time)
 
     def set_autonomy(self, enabled: bool):
         self.autonomy_enabled = enabled
@@ -260,6 +262,12 @@ class DataBridge:
                      else:
                          action = alert.get('suggested_action', '').lower()
                      
+                     # [NEW] Check Autonomy Flag for Alerts
+                     # Allow CRITICAL FAILURES (Emergency Stop) even if Autonomy is OFF
+                     if not self.autonomy_enabled and not is_critical_failure:
+                         logger.info(f"Skipping Auto-Resolve for Alert {alert['id']} (Autonomy Disabled)")
+                         continue
+                     
                      machine_id = alert['machineId']
                      
                      logger.info(f"Alert {alert['id']} ({alert['severity']}) is stale. AI taking action: {action}")
@@ -432,6 +440,14 @@ class DataBridge:
                     mid = action.get("machine_id")
                     reason = action.get("reason", "Optimization")
                     
+                    # [NEW] Check Safety Lock
+                    if mid in self.safety_locks:
+                        if time.time() < self.safety_locks[mid]:
+                            logger.info(f"🚫 Autonomy Blocked: {mid} is Safety Locked (Cooling Down)")
+                            continue
+                        else:
+                             del self.safety_locks[mid] # Expired
+
                     if cmd and mid:
                         logger.info(f"🦾 AI AUTONOMY ACTION: {cmd} on {mid} | Reason: {reason}")
                         
