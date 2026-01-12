@@ -769,10 +769,6 @@ class Factory:
                      total_defects += m.metrics.get("fail_count", 0)
                 
                 # Efficiency Accumulation
-                # Use speed ratio for Cutter/Conveyor as proxy for efficiency?
-                # Or just use "efficiency" metric if present, else 100?
-                # Robot/Inspector/Packer use 'efficiency' directly.
-                # Cutter/Conveyor use 'speed' / 'speed_setting' (3000 = 100%?)
                 if m.type == "Cutter":
                      eff = (m.metrics.get("speed", 0) / 3000.0) * 100.0
                 elif m.type == "Conveyor":
@@ -800,7 +796,7 @@ class Factory:
         inv_value = sum([i.quantity * i.cost_per_unit for i in self.inventory])
         total_assets = self.cash_balance + inv_value
         
-        # [FIX] Cap History to last 1000 ticks to prevent Memory Leak
+        # [FIX] Cap History to last 1000 ticks
         if len(self.asset_history) > 1000:
              self.asset_history.pop(0)
              
@@ -814,20 +810,6 @@ class Factory:
         return {
             "timestamp": current_time,
             "lines": [l.to_dict() for l in self.lines],
-            "financials": {
-                "revenue": self.total_revenue,
-                "costs": self.total_costs,
-                "profit": self.total_revenue - self.total_costs,
-                "cash": self.cash_balance,
-                "history": self.asset_history
-            },
-            "orders": self.orders,
-            "inventory": [i.to_dict() for i in self.inventory],
-            "energy_kwh": self.total_energy_kwh
-        }
-
-        return {
-            "lines": [l.to_dict() for l in self.lines],
             "inventory": [i.to_dict() for i in self.inventory],
             "workers": [w.to_dict() for w in self.workers],
             "orders": self.orders,
@@ -836,7 +818,8 @@ class Factory:
                 "costs": round(self.total_costs, 2),
                 "profit": round(self.total_revenue - self.total_costs, 2),
                 "cash": round(self.cash_balance, 2),
-                "assets": round(total_assets, 2)
+                "assets": round(total_assets, 2),
+                "history": self.asset_history # Include for Charts
             },
             "kpi": {
                 "total_output": total_output,
@@ -845,5 +828,6 @@ class Factory:
                 "defect_rate": round(defect_rate, 2),
                 "avg_efficiency": round(avg_efficiency, 1)
             },
+            "energy_kwh": self.total_energy_kwh,
             "pending_orders_count": len([o for o in self.orders if o["status"] == "Pending" or o["status"] == "Production"])
         }
