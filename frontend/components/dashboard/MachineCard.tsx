@@ -62,6 +62,13 @@ export default function MachineCard({ machine, index }: MachineCardProps) {
             {/* Header */}
             <div className="flex justify-between items-start mb-6 relative z-10">
                 <div className="flex items-center gap-3 overflow-hidden">
+                    {/* [NEW] Safety Lock Indicator */}
+                    {(machine as any).safety_mode && (
+                        <div className="bg-red-500/20 border border-red-500/50 p-1 rounded-md animate-pulse" title="Safety Lock Active">
+                            <div className="w-4 h-4 text-red-400">🔒</div>
+                        </div>
+                    )}
+
                     {/* Health Score Ring */}
                     <div className="relative w-12 h-12 flex items-center justify-center shrink-0 -mt-1 -ml-1">
                         <svg className="w-full h-full -rotate-90 -mt-0.75 ml-3.5">

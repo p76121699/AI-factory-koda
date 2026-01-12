@@ -166,15 +166,25 @@ class AICollaborator:
             logger.error(f"Analysis Error: {e}")
             return json.dumps({"root_cause": "Error", "action_plan": [], "suggested_action": "Check Manual"})
 
-    async def evaluate_autonomy(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        # Load external rulebook
+        rules = ""
+        try:
+            rule_path = Path(__file__).parent / "rules.txt"
+            if rule_path.exists():
+                 with open(rule_path, "r", encoding="utf-8") as f:
+                     rules = f.read()
+        except:
+             pass
+
         prompt_text = f"""
+        {rules}
+        
         CURRENT CONTEXT:
         {json.dumps(context, indent=2)}
         
         TASK:
         You are an Intelligent Factory Manager. Optimize the factory.
         
-        SCENARIOS:
         SCENARIOS:
         - High Demand (>5 orders) -> Speed Up.
         - Low Demand (<2 orders) -> Slow Down.
@@ -198,6 +208,7 @@ class AICollaborator:
         # [NEW] Inject System Override for Safety
         # This acts as a pre-prompt instruction
         prompt_text += "\nSYSTEM ALERT: Monitor Temperatures closely. Do not increase speed if temp > 80C."
+        prompt_text += "\nSAFETY OVERRIDE: If a machine has 'safety_mode': true, you MUST NOT increase its speed. You may only maintain or lower it."
         
         try:
             content = await self._generate_response(prompt_text)

@@ -4,6 +4,7 @@ import React from 'react';
 import { useFactory } from '../../context/FactoryContext';
 import MachineCard from './MachineCard';
 import MachineDetail from './MachineDetail';
+import AIActionLog from './AIActionLog'; // [NEW]
 import { Server, Activity, AlertTriangle, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -57,6 +58,11 @@ export default function DashboardPanel() {
             </AnimatePresence>
 
             {/* KPI Overview Header */}
+            {/* [NEW] AI Action Log (Visible if history exists) */}
+            <div className="mb-8">
+                <AIActionLog />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KPICard
                     label="Total Machines"

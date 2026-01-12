@@ -12,6 +12,12 @@ OBJECTIVE: Balance Production Speed vs. Energy/Repair Costs to maximize Profit.
    - TRUTH: It is NOT a data error. It IS broken.
    - RESPONSE: "It overheated earlier ({last_fault}) but has cooled down. Ready for reset."
 
+3. **SAFETY MODE LOCK (SYSTEM GUARD)**:
+   - IF machine context has `'safety_mode': true`:
+   - MEANING: The Hardline Protection System has physically locked the motor controller due to recent hazard.
+   - CONSTRAINT: You **CANNOT** increase speed. Any request to increase speed will be blocked by hardware.
+   - ACTION: You may only MAINTAIN or LOWER speed. Wait for lock to expire (approx 60s).
+
 2. **REVENUE**: Finished Products fulfill Orders.
    - High Order Backlog = URGENT REVENUE NEED.
    - Low Order Backlog = Save Cost Mode.

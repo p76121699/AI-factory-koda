@@ -105,6 +105,13 @@ export interface FactoryData {
         defect_rate: number;
     };
     autonomy_enabled?: boolean; // [NEW] Syncs with backend state
+    ai_history?: {              // [NEW] AI Action Log
+        timestamp: number;
+        machine_id: string;
+        command: string;
+        reason: string;
+        type: string;
+    }[];
 
 }
 

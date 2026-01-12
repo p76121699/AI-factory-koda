@@ -27,7 +27,13 @@ class DataBridge:
         self.running = False
         self.running = False
         self.autonomy_enabled = True # [NEW] Persist Autonomy State (In-memory for now, could be DB)
+        self.running = False
+        self.autonomy_enabled = True # [NEW] Persist Autonomy State (In-memory for now, could be DB)
+        self.running = False
+        self.autonomy_enabled = True # [NEW] Persist Autonomy State (In-memory for now, could be DB)
         self.safety_locks = {} # [NEW] machine_id -> timestamp (release time)
+        self.ai_history = [] # [NEW] Broadcastable AI Actions
+        self.ai_history = [] # [NEW] Broadcastable AI Actions
 
     def set_autonomy(self, enabled: bool):
         self.autonomy_enabled = enabled
@@ -357,8 +363,10 @@ class DataBridge:
                         "status": m["status"],
                         "temp": m.get("temperature", 0),
                         "speed": m.get("speed", 0),
+                        "speed": m.get("speed", 0),
                         "efficiency": m.get("efficiency", 100),
-                        "wear": max([p.get("wear", 0) for p in m.get("parts", [])], default=0.0)
+                        "wear": max([p.get("wear", 0) for p in m.get("parts", [])], default=0.0),
+                        "safety_mode": m["id"] in self.safety_locks # [NEW] Inject Safety State
                     })
             
             context = {
@@ -463,6 +471,26 @@ class DataBridge:
                             "command": cmd
                         })
                         
+                        # [NEW] Add to Broadcast History
+                        action_entry = {
+                            "timestamp": time.time(),
+                            "machine_id": mid,
+                            "command": cmd,
+                            "reason": reason,
+                            "type": "autonomy"
+                        }
+                        self.ai_history.append(action_entry)
+                        if len(self.ai_history) > 20: self.ai_history.pop(0)
+
+                        # [FIX] Cap History to prevent Memory Leak
+                        if len(self.action_history) > 500:
+                             self.action_history.pop(0)
+                        if len(self.ai_history) > 20: self.ai_history.pop(0)
+
+                        # [FIX] Cap History to prevent Memory Leak
+                        if len(self.action_history) > 500:
+                             self.action_history.pop(0)
+
                         # [FIX] Cap History to prevent Memory Leak
                         if len(self.action_history) > 500:
                              self.action_history.pop(0)
@@ -473,7 +501,9 @@ class DataBridge:
             logger.error(f"Autonomy Cycle Error: {e}")
 
     def get_latest_data(self):
-        return self.latest_data
+        data = self.latest_data.copy()
+        data['ai_history'] = list(reversed(self.ai_history)) # Newest first
+        return data
 
     def stop(self):
         self.running = False
