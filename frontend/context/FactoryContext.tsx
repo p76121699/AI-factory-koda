@@ -15,6 +15,7 @@ interface FactoryContextType {
     filterOptions: AlertFilterOptions;
     setFilterOptions: (o: AlertFilterOptions) => void;
     controlMachine: (id: string, command: 'start' | 'stop' | 'reset') => Promise<void>;
+    apiUrl: string; // [NEW] Expose constructed URL
     financials: { revenue: number; costs: number; profit: number } | null;
     chatMessages: { role: string, content: string, actions?: string[], isLoading?: boolean }[];
     addChatMessage: (msg: { role: string, content: string, actions?: string[], isLoading?: boolean }) => void;
@@ -43,12 +44,38 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
         selectedMachineIdRef.current = selectedMachine?.id || null;
     }, [selectedMachine]);
 
+    // [Smart URL Detection]
+    const getBaseUrls = () => {
+        // 1. Env Vars (Highest Priority)
+        let api = process.env.NEXT_PUBLIC_API_URL;
+        let ws_url = process.env.NEXT_PUBLIC_WS_URL;
+
+        // 2. Auto-detect based on browser location (Client-side only)
+        if (typeof window !== 'undefined' && !api) {
+            const host = window.location.hostname;
+            if (host === 'localhost' || host === '127.0.0.1') {
+                api = 'http://127.0.0.1:8000';
+                ws_url = 'ws://127.0.0.1:8000/ws/realtime';
+            } else {
+                // Production Fallback (Render)
+                api = 'https://ai-factory-koda.onrender.com';
+                ws_url = 'wss://ai-factory-koda.onrender.com/ws/realtime';
+            }
+        }
+
+        // 3. Absolute Fallback (Server-side rendering safe)
+        if (!api) api = 'http://127.0.0.1:8000';
+        if (!ws_url) ws_url = 'ws://127.0.0.1:8000/ws/realtime';
+
+        return { api, ws_url };
+    };
+
+    const { api: apiUrl, ws_url: wsUrl } = getBaseUrls();
+
     // WebSocket Connection
     useEffect(() => {
         const connect = () => {
             console.log("Attempting to connect to WebSocket...");
-            // [FIX] Explicitly default to localhost if env var is missing/empty
-            const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://127.0.0.1:8000/ws/realtime";
             console.log(`[FactoryContext] Connecting to WebSocket: ${wsUrl}`);
             ws.current = new WebSocket(wsUrl);
 
@@ -124,7 +151,7 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
 
     const controlMachine = async (id: string, command: 'start' | 'stop' | 'reset') => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+            // Use the smart apiUrl detected above
             const response = await fetch(`${apiUrl}/api/v1/machines/${id}/control`, {
                 method: 'POST',
                 headers: {
@@ -164,6 +191,7 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
             filterOptions,
             setFilterOptions,
             controlMachine,
+            apiUrl, // [NEW]
             financials: data?.financials || null,
             chatMessages,
             addChatMessage,

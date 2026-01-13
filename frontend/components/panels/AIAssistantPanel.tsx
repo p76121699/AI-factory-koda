@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useFactory } from '../../context/FactoryContext';
 
 export default function AIAssistantPanel() {
-    const { currentState, activePanel } = useFactory();
+    const { currentState, activePanel, apiUrl } = useFactory(); // [FIX] Get apiUrl from Context
     const [resetting, setResetting] = useState(false);
     const [autonomyEnabled, setLocalAutonomy] = useState(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    // const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'; // Removed, using Context
 
     // Sync with Backend on Mount
     React.useEffect(() => {
