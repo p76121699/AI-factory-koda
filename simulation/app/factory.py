@@ -184,7 +184,7 @@ class Factory:
         # At 0 orders: 5% chance (approx 1 every 20 secs)
         # At 5 orders: 2.5% 
         # At 9 orders: 0.5%
-        base_prob = 0.01 
+        base_prob = 0.005
         # Decays linearly as we approach 10
         adjusted_prob = base_prob * (1.0 - (pending_count / 10.0))
         
