@@ -8,7 +8,7 @@ import { clsx } from 'clsx';
 import { useFactory } from '../../context/FactoryContext';
 
 export default function OrdersPanel() {
-    const { data, connected } = useFactory();
+    const { data, connected, apiUrl } = useFactory();
     const orders = data?.orders || [];
     const financials = data?.financials;
 
@@ -83,7 +83,6 @@ export default function OrdersPanel() {
                             onClick={async () => {
                                 if (confirm("Clear all completed orders?")) {
                                     // Call backend prune API
-                                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
                                     await fetch(`${apiUrl}/api/orders/prune`, { method: 'POST' });
                                 }
                             }}
