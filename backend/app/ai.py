@@ -166,6 +166,7 @@ class AICollaborator:
             logger.error(f"Analysis Error: {e}")
             return json.dumps({"root_cause": "Error", "action_plan": [], "suggested_action": "Check Manual"})
 
+    async def evaluate_autonomy(self, context: Dict[str, Any]) -> Dict[str, Any]:
         # Load external rulebook
         rules = ""
         try:
@@ -180,14 +181,14 @@ class AICollaborator:
         {rules}
         
         CURRENT CONTEXT:
-        {json.dumps(context, indent=2)}
+        {json.dumps(context, indent=3)}
         
         TASK:
         You are an Intelligent Factory Manager. Optimize the factory.
         
         SCENARIOS:
-        - High Demand (>5 orders) -> Speed Up.
-        - Low Demand (<2 orders) -> Slow Down.
+        - High Demand (>2 orders) -> Speed Up (Target: 3000-5000 RPM).
+        - Low Demand (<2 orders) -> Maintain Optimal Speed (2000-3000 RPM).
         - Overheat (>80C) -> Slow Down / Stop (PRIORITY).
         - SAFETY FIRST: If machine is hot, reduce speed regardless of demand.
         
@@ -197,7 +198,7 @@ class AICollaborator:
             "message": "Reasoning...",
             "actions": [
                 {{
-                    "command": "adjust_speed:500",
+                    "command": "adjust_speed:1000",
                     "machine_id": "L1-CUT-01",
                     "reason": "High Orders"
                 }}
