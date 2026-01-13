@@ -488,8 +488,22 @@ class DataBridge:
                             "machine_id": mid,
                             "command": cmd
                         })
-                        self.last_autonomy_action[mid] = time.time() # [NEW] Set Cooldown
+
+                        # [NEW] Smart Cooldown: Only lock if NOT speeding up
+                        # User Logic: If we speed up, we might overheat, so we need ability to slow down IMMEDIATELY.
+                        # If we slow down, we should wait to see effect.
+                        is_speed_up = False
+                        if "adjust_speed" in cmd:
+                            try:
+                                val = float(cmd.split(":")[1])
+                                if val > 0: is_speed_up = True
+                            except: pass
                         
+                        if not is_speed_up:
+                             self.last_autonomy_action[mid] = time.time() # Lock for stability
+                        else:
+                             logger.info(f"🚀 Speed Up detected on {mid}. Skipping cooldown to allow emergency correction if needed.")
+
                         # [NEW] Add to Broadcast History
                         action_entry = {
                             "timestamp": time.time(),
