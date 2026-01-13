@@ -187,9 +187,9 @@ class AICollaborator:
         You are an Intelligent Factory Manager. Optimize the factory.
         
         SCENARIOS:
-        - High Demand (>2 orders) -> Speed Up (Target: 3000-5000 RPM).
-        - Low Demand (<2 orders) -> Maintain Optimal Speed (2000-3000 RPM).
-        - Overheat (>80C) -> Slow Down / Stop (PRIORITY).
+        - High Demand (>2 orders) -> Speed Up GRADUALLY (+500 RPM). Do not jump to max.
+        - Low Demand (<2 orders) -> Maintain/Reduce Speed (2000-3000 RPM).
+        - Overheat (>120C) -> Slow Down / Stop (PRIORITY).
         - SAFETY FIRST: If machine is hot, reduce speed regardless of demand.
         
         RESPONSE FORMAT (Valid JSON ONLY):
@@ -198,9 +198,9 @@ class AICollaborator:
             "message": "Reasoning...",
             "actions": [
                 {{
-                    "command": "adjust_speed:1000",
+                    "command": "adjust_speed:500",
                     "machine_id": "L1-CUT-01",
-                    "reason": "High Orders"
+                    "reason": "High Orders (Gradual Increase)"
                 }}
             ]
         }}
@@ -208,7 +208,7 @@ class AICollaborator:
         
         # [NEW] Inject System Override for Safety
         # This acts as a pre-prompt instruction
-        prompt_text += "\nSYSTEM ALERT: Monitor Temperatures closely. Do not increase speed if temp > 80C."
+        prompt_text += "\nSYSTEM ALERT: Monitor Temperatures closely. Do not increase speed if temp > 120C."
         prompt_text += "\nSAFETY OVERRIDE: If a machine has 'safety_mode': true, you MUST NOT increase its speed. You may only maintain or lower it."
         
         try:

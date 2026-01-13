@@ -492,19 +492,10 @@ class DataBridge:
                         if len(self.action_history) > 500: self.action_history.pop(0)
 
                         # 2. Smart Cooldown Logic (Stability)
-                        # Rule: If Speeding Up (adjust_speed > 0), DO NOT COOLDOWN (Allow emergency fixes)
-                        # Rule: If Slowing Down or Setting Value, APPLY COOLDOWN (Prevent jitter)
-                        should_cooldown = True
-                        if "adjust_speed" in cmd:
-                            try:
-                                val = float(cmd.split(":")[1])
-                                if val > 0: should_cooldown = False
-                            except: pass
+                        # Rule: Always apply cooldown for Autonomy actions to prevent jitter
+                        self.last_autonomy_action[mid] = time.time()
                         
-                        if should_cooldown:
-                             self.last_autonomy_action[mid] = time.time()
-                        else:
-                             logger.info(f"🚀 Speed Up ({cmd}) - Skipping Cooldown for Agility")
+                        logger.info(f"⏳ Cooldown set for {mid}. Waiting 30s before next AI adjust.")
 
                         # 3. Update Broadcast History (Visual Log)
                         action_entry = {

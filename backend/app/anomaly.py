@@ -6,7 +6,7 @@ class AnomalyDetector:
         # Define thresholds
         self.thresholds = {
             "Cutter": {
-                "temperature": {"warning": 95.0, "critical": 110.0},
+                "temperature": {"warning": 120.0, "critical": 150.0},
                 "vibration": {"warning": 8.0, "critical": 12.0}
             },
             "RobotArm": {

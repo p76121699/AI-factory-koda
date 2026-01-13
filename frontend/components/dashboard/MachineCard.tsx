@@ -160,7 +160,7 @@ function getMachineMetrics(machine: Machine) {
 
     switch (machine.type) {
         case 'Cutter':
-            metrics.push({ icon: Thermometer, label: 'Temp', value: machine.temperature ? `${machine.temperature.toFixed(1)}°C` : '--', alert: machine.temperature ? machine.temperature > 90 : false });
+            metrics.push({ icon: Thermometer, label: 'Temp', value: machine.temperature ? `${machine.temperature.toFixed(1)}°C` : '--', alert: machine.temperature ? machine.temperature > 120 : false });
             metrics.push({ icon: Activity, label: 'Vib', value: machine.vibration ? `${machine.vibration.toFixed(2)} Hz` : '--', alert: machine.vibration ? machine.vibration > 5 : false });
             metrics.push({ icon: Gauge, label: 'Speed', value: machine.speed ? `${machine.speed.toFixed(0)} rpm` : '--' });
             metrics.push({ icon: AlertTriangle, label: 'Wear', value: machine.wear_level ? `${(machine.wear_level * 100).toFixed(0)}%` : '0%', alert: (machine.wear_level || 0) > 0.8 });

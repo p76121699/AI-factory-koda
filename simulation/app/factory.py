@@ -175,15 +175,18 @@ class Factory:
         # 2. Random New Orders (Dynamic Probability)
         pending_count = len([o for o in self.orders if o["status"] != "Ready"])
         
-        # Base probability 0.25%
-        # User Logic: Decrease probability if pending orders > 6
-        # Formula: base / (1 + (pending / 6))
-        # If 0 pending: 0.0025 / 1 = 0.0025
-        # If 6 pending: 0.0025 / 2 = 0.00125
-        # If 12 pending: 0.0025 / 3 = 0.0008
-        
+        # [NEW] Hard Cap: Stop accepting orders if backlog is too high
+        if pending_count >= 10:
+            return
+
+        # [NEW] Exponential Decay Probability
+        # Base: 0.25% chance per tick
+        # At 0 orders: 0.25%
+        # At 5 orders: 0.12%
+        # At 9 orders: 0.02%
         base_prob = 0.0025
-        adjusted_prob = base_prob / (1.0 + (pending_count / 6.0))
+        # Decays rapidly as we approach 10
+        adjusted_prob = base_prob * (1.0 - (pending_count / 10.0)) ** 2
         
         if random.random() < adjusted_prob:
              new_id = f"ORD-{int(time.time()*1000)}" # Unique ID
