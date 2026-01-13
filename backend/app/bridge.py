@@ -279,6 +279,7 @@ class DataBridge:
                      
                      logger.info(f"Alert {alert['id']} ({alert['severity']}) is stale. AI taking action: {action}")
                      
+                     
                      # Map AI response or Alert Type to specific commands
                      command = None
                      msg_lower = alert.get('message', '').lower()
@@ -328,17 +329,24 @@ class DataBridge:
                          })
                          
                          # Update Command History (Lock)
-                         self.command_history[machine_id] = timestamp
-                         
-                         # [NEW] Log to AI History (So it shows on Dashboard)
-                         self.ai_history.append({
-                             "timestamp": time.time(),
-                             "machine_id": machine_id,
-                             "command": command,
-                             "reason": f"Safety Intervention: {action}",
-                             "type": "safety"
-                         })
-                         if len(self.ai_history) > 20: self.ai_history.pop(0)
+                         try:
+                             self.command_history[machine_id] = time.time()
+                             
+                             # [NEW] Log to AI History (So it shows on Dashboard)
+                             entry = {
+                                 "timestamp": time.time(),
+                                 "machine_id": machine_id,
+                                 "command": command,
+                                 "reason": f"Safety Intervention: {action}",
+                                 "type": "safety"
+                             }
+                             self.ai_history.append(entry)
+                             logger.info(f"✅ SAFETY LOG ADDED: {entry}")
+                             
+                             if len(self.ai_history) > 20: self.ai_history.pop(0)
+
+                         except Exception as e:
+                             logger.error(f"❌ FAILED to write Safety Log: {e}")
 
                          # Update Alert
                          alert['resolved'] = True

@@ -107,7 +107,7 @@ export default function MachineDetail() {
         <>
             <div className="col-span-4 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                    <MetricBox label="Temp" value={(selectedMachine.temperature || 0).toFixed(1)} unit="°C" icon={Thermometer} alert={(selectedMachine.temperature || 0) > 120} />
+                    <MetricBox label="Temp" value={(selectedMachine.temperature || 0).toFixed(1)} unit="°C" icon={Thermometer} alert={(selectedMachine.temperature || 0) > 150} />
                     <MetricBox label="Speed" value={(selectedMachine.speed || 0).toFixed(0)} unit="rpm" icon={Activity} />
                     <MetricBox label="Vibration" value={(selectedMachine.vibration || 0).toFixed(2)} unit="Hz" icon={Activity} />
                     <MetricBox label="Wear" value={((selectedMachine.wear_level || 0) * 100).toFixed(0)} unit="%" icon={AlertTriangle} alert={(selectedMachine.wear_level || 0) > 0.8} />

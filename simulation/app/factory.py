@@ -180,13 +180,13 @@ class Factory:
             return
 
         # [NEW] Exponential Decay Probability
-        # Base: 0.25% chance per tick
-        # At 0 orders: 0.25%
-        # At 5 orders: 0.12%
-        # At 9 orders: 0.02%
-        base_prob = 0.0025
-        # Decays rapidly as we approach 10
-        adjusted_prob = base_prob * (1.0 - (pending_count / 10.0)) ** 2
+        # Base: 5% chance per tick (Previously 0.25% was too slow)
+        # At 0 orders: 5% chance (approx 1 every 20 secs)
+        # At 5 orders: 2.5% 
+        # At 9 orders: 0.5%
+        base_prob = 0.01 
+        # Decays linearly as we approach 10
+        adjusted_prob = base_prob * (1.0 - (pending_count / 10.0))
         
         if random.random() < adjusted_prob:
              new_id = f"ORD-{int(time.time()*1000)}" # Unique ID
