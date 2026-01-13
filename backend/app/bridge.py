@@ -30,9 +30,10 @@ class DataBridge:
         self.running = False
         self.autonomy_enabled = True # [NEW] Persist Autonomy State (In-memory for now, could be DB)
         self.running = False
-        self.autonomy_enabled = True # [NEW] Persist Autonomy State (In-memory for now, could be DB)
+        self.autonomy_enabled = False # [FIX] Default to PAUSED (Safety First)
         self.safety_locks = {} # [NEW] machine_id -> timestamp (release time)
         self.ai_history = [] # [NEW] Broadcastable AI Actions
+        self.last_autonomy_action = {} # [NEW] machine_id -> timestamp (cooldown)
         self.ai_history = [] # [NEW] Broadcastable AI Actions
 
     def set_autonomy(self, enabled: bool):
@@ -466,6 +467,13 @@ class DataBridge:
                         else:
                              del self.safety_locks[mid] # Expired
 
+                    # [NEW] Stability Check (Cooldown) to prevent jitter
+                    if mid in self.last_autonomy_action:
+                        time_since_last = time.time() - self.last_autonomy_action[mid]
+                        if time_since_last < 30.0: # 30 Seconds Cooldown
+                             logger.info(f"⏳ Autonomy Cooldown: {mid} adjusted recently ({int(time_since_last)}s ago). Waiting for stability.")
+                             continue
+
                     if cmd and mid:
                         logger.info(f"🦾 AI AUTONOMY ACTION: {cmd} on {mid} | Reason: {reason}")
                         
@@ -474,12 +482,13 @@ class DataBridge:
                             "command": cmd
                         })
                         
-                        # Record History
+                        # Update Timestamps
                         self.action_history.append({
                             "timestamp": time.time(),
                             "machine_id": mid,
                             "command": cmd
                         })
+                        self.last_autonomy_action[mid] = time.time() # [NEW] Set Cooldown
                         
                         # [NEW] Add to Broadcast History
                         action_entry = {
