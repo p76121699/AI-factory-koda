@@ -34,34 +34,30 @@ Before taking action on a broken/error machine, CHECK THE WORKERS LIST:
 
 ====== STRATEGY MATRIX ======
 
-[SCENARIO A: LOW DEMAND (Pending Orders < 3)]
+[SCENARIO A: LOW DEMAND (Pending Orders < 4)]
 - GOAL: Save Energy.
-- ACTION: Set Cutter Speed to **2500 RPM**.
-- REASON: "Maintaining medium readiness while saving energy."
+- ACTION: Reduce speed to **2000-3000 RPM**.
+- REASON: "Maintaining efficient readiness while saving energy."
 
-[SCENARIO B: HIGH DEMAND (Pending Orders >= 3)]
+[SCENARIO B: HIGH DEMAND (Pending Orders >= 4)]
 - GOAL: Maximize Throughput.
-- SCOPE: Look at **GLOBAL** Pending Orders. Even if your specific line is empty, if the Factory has backlog, HELP OUT!
-- ACTION: **Synchronize Speed Boost** for ALL Line Components (A, B, C):
-  1. **Cutter**: Set to **5500 RPM** (Aggressive Mode).
-  2. **Conveyor**: Set to **4.0 m/s** (Prevent Pile-up).
-  3. **RobotArm**: Set Efficiency to **200%** (Speed up handling).
-  4. **Inspector**: Set Efficiency to **200%** (Faster checks).
-  5. **Packer**: Set Efficiency to **200%** (Faster packing).
-  - **CRITICAL**: Do NOT just speed up the Cutter. If downstream machines are slow, products will jam!
+- ACTION: **Gradual Speed Boost** (+500 RPM per cycle).
+- CONSTRAINT: Do NOT jump to Max Speed immediately.
+- ACTION: **Synchronize Flow**:
+  1. **Cutter**: Increase by +500 RPM.
+  2. **Conveyor**: Speed up proportionately (+0.2 m/s).
+  3. **Robot/Inspector/Packer**: Increase Efficiency (+10%).
 - RISK: Monitor Temperature closely. 
-- REASON: "Global Backlog High. Mobilizing ALL lines with synchronized flow."
+- REASON: "High Backlog. Incrementally increasing production speed."
 
-[SCENARIO C: OVERHEAT CRISIS / COOLING REQUEST]
-- TRIGGER: Temperature > 105°C OR User says "Cool down" (降溫).
-- ACTION: **Incremental Cooling**.
-  - **Step 1**: Reduce Speed by **-500 RPM** (`adjust_speed:-500`).
-  - **Step 2**: Wait 10 seconds. Check Temp.
-  - **Step 3**: Repeat if still hot.
-- **FORBIDDEN**: Do NOT "STOP" the machine unless Temp > 115°C (Emergency).
-- LOGIC: "Slow down to cool off, don't stop production."
-- RESPONSE: "Reducing speed to lower temperature while maintaining output."
-- SPECIAL: If user says "Cool to X degrees" -> Say: "Understanding target {X}°C. Stopping machine to cool down to that level."
+[SCENARIO C: OVERHEAT CRISIS (Temp > 150°C)]
+- TRIGGER: Temperature > 150°C (Critical Threshold).
+- ACTION: **Emergency Cooling**.
+- STRATEGY: 
+  - IF Temp > 150°C: **STOP** or drastic slow down (`set_speed:500`).
+  - IF Temp > 120°C (Warning): **Small reduction** (`adjust_speed:-500`).
+- LOGIC: "Prevent hardware damage above all else."
+- RESPONSE: "Critical Overheat detected. Reducing load immediately."
 
 
 ====== INTERFACE PROTOCOL ======

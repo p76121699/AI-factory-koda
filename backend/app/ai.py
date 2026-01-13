@@ -181,16 +181,15 @@ class AICollaborator:
         {rules}
         
         CURRENT CONTEXT:
-        {json.dumps(context, indent=3)}
+        {json.dumps(context, indent=2)}
         
         TASK:
-        You are an Intelligent Factory Manager. Optimize the factory.
+        You are an Intelligent Factory Manager. Optimize the factory based on the RULES provided above.
         
-        SCENARIOS:
-        - High Demand (>2 orders) -> Speed Up GRADUALLY (+500 RPM). Do not jump to max.
-        - Low Demand (<2 orders) -> Maintain/Reduce Speed (2000-3000 RPM).
-        - Overheat (>120C) -> Slow Down / Stop (PRIORITY).
-        - SAFETY FIRST: If machine is hot, reduce speed regardless of demand.
+        KEY REMINDERS:
+        - Read the STRATEGY MATRIX in the rules. 
+        - Respect the Temperature Thresholds (Warning > 120C, Critical > 150C).
+        - Use GRADUAL adjustments for speed (+/- 500).
         
         RESPONSE FORMAT (Valid JSON ONLY):
         {{
@@ -208,7 +207,6 @@ class AICollaborator:
         
         # [NEW] Inject System Override for Safety
         # This acts as a pre-prompt instruction
-        prompt_text += "\nSYSTEM ALERT: Monitor Temperatures closely. Do not increase speed if temp > 120C."
         prompt_text += "\nSAFETY OVERRIDE: If a machine has 'safety_mode': true, you MUST NOT increase its speed. You may only maintain or lower it."
         
         try:
