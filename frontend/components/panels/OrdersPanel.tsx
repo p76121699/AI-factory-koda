@@ -38,7 +38,7 @@ export default function OrdersPanel() {
             if (a.status === 'Ready' && b.status !== 'Ready') return 1;
             if (a.status !== 'Ready' && b.status === 'Ready') return -1;
 
-            if (sortKey === 'due') return new Date(a.due * 1000).getTime() - new Date(b.due * 1000).getTime();
+            if (sortKey === 'due') return new Date(Number(a.due) * 1000).getTime() - new Date(Number(b.due) * 1000).getTime();
             if (sortKey === 'progress') return b.progress - a.progress;
             if (sortKey === 'quantity') return b.quantity - a.quantity;
             if (sortKey === 'status') return a.status.localeCompare(b.status);
@@ -221,8 +221,8 @@ function OrderCard({ order }: { order: OrderModel }) {
                 <div className="text-center">
                     <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">Due Date</p>
                     <p className={clsx("font-mono font-medium",
-                        new Date(order.due * 1000).getTime() < new Date().getTime() ? 'text-red-400' : 'text-gray-200'
-                    )}>{new Date(order.due * 1000).toLocaleDateString()}</p>
+                        new Date(Number(order.due) * 1000).getTime() < new Date().getTime() ? 'text-red-400' : 'text-gray-200'
+                    )}>{new Date(Number(order.due) * 1000).toLocaleDateString()}</p>
                 </div>
             </div>
 

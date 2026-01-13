@@ -146,7 +146,7 @@ export interface OrderModel {
     quantity: number;
     progress: number;       // 0–100
     status: 'Pending' | 'Production' | 'Assembly' | 'Testing' | 'Ready';
-    due: string;            // ISO date
+    due: number;            // Unix timestamp
     createdAt: string;      // ISO date
     priority: 'High' | 'Medium' | 'Low';
     notes?: string[];
