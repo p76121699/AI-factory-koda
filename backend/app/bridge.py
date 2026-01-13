@@ -477,34 +477,36 @@ class DataBridge:
                     if cmd and mid:
                         logger.info(f"🦾 AI AUTONOMY ACTION: {cmd} on {mid} | Reason: {reason}")
                         
+                        # Execute Command
                         await self.send_command({
                             "machine_id": mid,
                             "command": cmd
                         })
                         
-                        # Update Timestamps
+                        # 1. Update Internal History
                         self.action_history.append({
                             "timestamp": time.time(),
                             "machine_id": mid,
                             "command": cmd
                         })
+                        if len(self.action_history) > 500: self.action_history.pop(0)
 
-                        # [NEW] Smart Cooldown: Only lock if NOT speeding up
-                        # User Logic: If we speed up, we might overheat, so we need ability to slow down IMMEDIATELY.
-                        # If we slow down, we should wait to see effect.
-                        is_speed_up = False
+                        # 2. Smart Cooldown Logic (Stability)
+                        # Rule: If Speeding Up (adjust_speed > 0), DO NOT COOLDOWN (Allow emergency fixes)
+                        # Rule: If Slowing Down or Setting Value, APPLY COOLDOWN (Prevent jitter)
+                        should_cooldown = True
                         if "adjust_speed" in cmd:
                             try:
                                 val = float(cmd.split(":")[1])
-                                if val > 0: is_speed_up = True
+                                if val > 0: should_cooldown = False
                             except: pass
                         
-                        if not is_speed_up:
-                             self.last_autonomy_action[mid] = time.time() # Lock for stability
+                        if should_cooldown:
+                             self.last_autonomy_action[mid] = time.time()
                         else:
-                             logger.info(f"🚀 Speed Up detected on {mid}. Skipping cooldown to allow emergency correction if needed.")
+                             logger.info(f"🚀 Speed Up ({cmd}) - Skipping Cooldown for Agility")
 
-                        # [NEW] Add to Broadcast History
+                        # 3. Update Broadcast History (Visual Log)
                         action_entry = {
                             "timestamp": time.time(),
                             "machine_id": mid,
@@ -513,11 +515,11 @@ class DataBridge:
                             "type": "autonomy"
                         }
                         self.ai_history.append(action_entry)
+                        
+                        # Keep Broadcast Log short
                         if len(self.ai_history) > 20: self.ai_history.pop(0)
-
-                        # [FIX] Cap History to prevent Memory Leak
-                        if len(self.action_history) > 500:
-                             self.action_history.pop(0)
+                        
+                        logger.info(f"✅ Logged to AI History. Total entries: {len(self.ai_history)}")
                         if len(self.ai_history) > 20: self.ai_history.pop(0)
 
                         # [FIX] Cap History to prevent Memory Leak
