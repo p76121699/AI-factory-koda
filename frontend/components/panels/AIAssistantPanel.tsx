@@ -104,7 +104,7 @@ export default function AIAssistantPanel() {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
                             <span className="text-gray-400">Energy Efficiency</span>
-                            <span className="text-blue-400 font-mono">{(metrics.energy_usage / 1000).toFixed(1)} MWh</span>
+                            <span className="text-blue-400 font-mono">{(metrics.energy_usage).toFixed(1)} kWh</span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
                             <span className="text-gray-400">Defect Rate</span>

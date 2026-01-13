@@ -218,7 +218,7 @@ class Cutter(Machine):
         if self.status == "RUNNING":
             # Simulate Physics
             # Speed Control: Use setting or default 3000
-            target_speed = self.metrics.get("speed_setting", 1500.0)
+            target_speed = self.metrics.get("speed_setting", 3000.0)
             
             # Actual Speed = Target + Noise
             self.metrics["speed"] = target_speed + random.randint(-50, 50)
@@ -307,7 +307,7 @@ class Conveyor(Machine):
              
              # Dynamic Speed: Heavy load slows down the belt slightly
              # Base Speed from AI setting (default 1.2)
-             base_speed = self.metrics.get("target_speed", 0.8)
+             base_speed = self.metrics.get("target_speed", 1.2)
              
              jitter = random.uniform(-0.02, 0.02)
              # Apply load friction

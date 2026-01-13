@@ -824,7 +824,7 @@ class Factory:
             "kpi": {
                 "total_output": total_output,
                 "avg_cycle_time": round(avg_cycle_time, 2),
-                "energy_usage": int(total_energy),
+                "energy_usage": round(total_energy, 2),
                 "defect_rate": round(defect_rate, 2),
                 "avg_efficiency": round(avg_efficiency, 1)
             },

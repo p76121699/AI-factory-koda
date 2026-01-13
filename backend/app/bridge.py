@@ -329,6 +329,16 @@ class DataBridge:
                          # Update Command History (Lock)
                          self.command_history[machine_id] = timestamp
                          
+                         # [NEW] Log to AI History (So it shows on Dashboard)
+                         self.ai_history.append({
+                             "timestamp": time.time(),
+                             "machine_id": machine_id,
+                             "command": command,
+                             "reason": f"Safety Intervention: {action}",
+                             "type": "safety"
+                         })
+                         if len(self.ai_history) > 20: self.ai_history.pop(0)
+
                          # Update Alert
                          alert['resolved'] = True
                          alert['resolved_at'] = current_time_ms

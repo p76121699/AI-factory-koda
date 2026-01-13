@@ -36,8 +36,8 @@ Before taking action on a broken/error machine, CHECK THE WORKERS LIST:
 
 [SCENARIO A: LOW DEMAND (Pending Orders < 3)]
 - GOAL: Save Energy.
-- ACTION: Set Cutter Speed to **1200 RPM**.
-- REASON: "No rush. Saving electricity."
+- ACTION: Set Cutter Speed to **2500 RPM**.
+- REASON: "Maintaining medium readiness while saving energy."
 
 [SCENARIO B: HIGH DEMAND (Pending Orders >= 3)]
 - GOAL: Maximize Throughput.
