@@ -129,7 +129,7 @@ async def push_to_frontend():
     while True:
         try:
             if data_bridge.latest_data:
-                await manager.broadcast(json.dumps(data_bridge.latest_data))
+                await manager.broadcast(json.dumps(data_bridge.get_latest_data()))
             else:
                 pass
         except Exception as e:
