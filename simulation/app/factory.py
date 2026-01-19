@@ -799,7 +799,7 @@ class Factory:
         inv_value = sum([i.quantity * i.cost_per_unit for i in self.inventory])
         total_assets = self.cash_balance + inv_value
         
-        # [FIX] Cap History to last 1000 ticks
+        # [FIX] Bandwidth Optimization: Cap history in memory
         if len(self.asset_history) > 1000:
              self.asset_history.pop(0)
              
@@ -810,19 +810,29 @@ class Factory:
             "total": total_assets
         })
         
+        # [FIX] Bandwidth Optimization: Prune Orders
+        # Only send Active Orders + Last 10 Completed/Cancelled
+        active_orders = [o for o in self.orders if o["status"] in ["Pending", "Production", "Ready"]]
+        completed_orders = [o for o in self.orders if o["status"] not in ["Pending", "Production", "Ready"]]
+        # Keep only last 10 completed for reference
+        recent_completed = completed_orders[-10:] 
+        
+        display_orders = active_orders + recent_completed
+
         return {
             "timestamp": current_time,
             "lines": [l.to_dict() for l in self.lines],
             "inventory": [i.to_dict() for i in self.inventory],
             "workers": [w.to_dict() for w in self.workers],
-            "orders": self.orders,
+            "orders": display_orders, # [FIX] Send pruned list
             "financials": {
                 "revenue": round(self.total_revenue, 2),
                 "costs": round(self.total_costs, 2),
                 "profit": round(self.total_revenue - self.total_costs, 2),
                 "cash": round(self.cash_balance, 2),
                 "assets": round(total_assets, 2),
-                "history": self.asset_history # Include for Charts
+                # [FIX] Bandwidth Optimization: Send only last 20 points to frontend
+                "history": self.asset_history[-20:] 
             },
             "kpi": {
                 "total_output": total_output,

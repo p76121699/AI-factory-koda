@@ -34,7 +34,7 @@ class DataBridge:
         self.safety_locks = {} # [NEW] machine_id -> timestamp (release time)
         self.ai_history = [] # [NEW] Broadcastable AI Actions
         self.last_autonomy_action = {} # [NEW] machine_id -> timestamp (cooldown)
-        self.ai_history = [] # [NEW] Broadcastable AI Actions
+        self.ai_is_running = False # [NEW] Async Lock for AI Cycle
 
     def set_autonomy(self, enabled: bool):
         self.autonomy_enabled = enabled
@@ -394,7 +394,11 @@ class DataBridge:
                 "cash": data.get("financials", {}).get("cash", 0)
             }
             
-            asyncio.create_task(self._run_autonomy_cycle(context))
+            # [FIX] Prevent AI Pile-up: Check if AI is already running
+            if not self.ai_is_running:
+                 asyncio.create_task(self._run_autonomy_cycle(context))
+            else:
+                 logger.warning("⚠️ AI Autonomy Cycle skipped (Previous cycle still running)")
 
         # [NEW] Data Cleanup (Every hour check)
         if (current_time_ms - self.last_cleanup) > 3600000: # 1 Hour
@@ -437,6 +441,9 @@ class DataBridge:
         """
         Runs the AI autonomy loop to optimize factory parameters.
         """
+        if self.ai_is_running: return
+        self.ai_is_running = True
+        
         try:
             # logger.info("Running AI Autonomy Cycle...")
             result = await self.ai.evaluate_autonomy(context)
@@ -533,6 +540,8 @@ class DataBridge:
                     # We could inject a special "AI Action" alert or notification.
         except Exception as e:
             logger.error(f"Autonomy Cycle Error: {e}")
+        finally:
+            self.ai_is_running = False
 
     def get_latest_data(self):
         data = self.latest_data.copy()
