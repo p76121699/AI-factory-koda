@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 import os
 import gzip # [NEW]
+import base64 # [NEW]
 from pathlib import Path
 import re # [NEW] Regex for parsing AI commands
 from pydantic import BaseModel # [FIX] Top Level Import
@@ -133,10 +134,13 @@ async def push_to_frontend():
     while True:
         try:
             if data_bridge.latest_data:
-                # [FIX] Compress Payload with Gzip
+                # [FIX] Base64 Encoded Gzip (Robust)
                 json_bytes = json.dumps(data_bridge.get_latest_data()).encode('utf-8')
                 compressed = gzip.compress(json_bytes)
-                await manager.broadcast(compressed)
+                b64_str = base64.b64encode(compressed).decode('ascii')
+                payload = f"GZIP::{b64_str}"
+                
+                await manager.broadcast(payload)
             else:
                 pass
         except Exception as e:

@@ -88,8 +88,26 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
                 try {
                     let jsonString = "";
 
-                    if (event.data instanceof Blob) {
-                        // [NEW] Handle Gzip Compressed Data
+                    if (typeof event.data === 'string' && event.data.startsWith('GZIP::')) {
+                        // [NEW] Handle Base64-Encoded Gzip (Robust)
+                        try {
+                            const b64 = event.data.slice(6); // Remove "GZIP::"
+                            const binaryString = atob(b64);
+                            const bytes = new Uint8Array(binaryString.length);
+                            for (let i = 0; i < binaryString.length; i++) {
+                                bytes[i] = binaryString.charCodeAt(i);
+                            }
+
+                            const ds = new DecompressionStream('gzip');
+                            const stream = new Blob([bytes]).stream().pipeThrough(ds);
+                            const response = new Response(stream);
+                            jsonString = await response.text();
+                        } catch (err) {
+                            console.error("GZIP/Base64 Decompression Failed:", err);
+                            return;
+                        }
+                    } else if (event.data instanceof Blob) {
+                        // [Legacy] Handle Binary Blob Gzip
                         try {
                             // Modern Browser Decompression API
                             const ds = new DecompressionStream('gzip');

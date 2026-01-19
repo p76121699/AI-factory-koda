@@ -4,11 +4,11 @@ import websockets
 import logging
 import os
 import gzip # [NEW]
+import base64 # [NEW]
 from sqlalchemy.ext.asyncio import AsyncSession
 from .database import AsyncSessionLocal
 from .models import Event, MachineState
 from .anomaly import AnomalyDetector
-
 from .ai import AICollaborator
 import uuid
 import time
@@ -115,8 +115,18 @@ class DataBridge:
                     logger.info(f"Connected to Simulation at {self.simulation_url}")
                     self.websocket = websocket # Store connection
                     async for message in websocket:
-                        # [FIX] Decompress Gzip if binary
-                        if isinstance(message, bytes):
+                         # [FIX] Handle Base64 Encoded Gzip (Robust)
+                        if isinstance(message, str) and message.startswith("GZIP::"):
+                            try:
+                                b64_data = message[6:] # Strip 'GZIP::'
+                                compressed = base64.b64decode(b64_data)
+                                json_str = gzip.decompress(compressed).decode('utf-8')
+                            except Exception as e:
+                                logger.error(f"GZIP/Base64 Error: {e}")
+                                continue
+                                
+                        # [Legacy] Decompress Gzip if raw binary
+                        elif isinstance(message, bytes):
                             try:
                                 json_str = gzip.decompress(message).decode('utf-8')
                             except Exception as e:
