@@ -84,9 +84,27 @@ export function FactoryProvider({ children }: { children: ReactNode }) {
                 console.log("Connected to WebSocket");
             };
 
-            ws.current.onmessage = (event) => {
+            ws.current.onmessage = async (event) => {
                 try {
-                    const parsed: FactoryData = JSON.parse(event.data);
+                    let jsonString = "";
+
+                    if (event.data instanceof Blob) {
+                        // [NEW] Handle Gzip Compressed Data
+                        try {
+                            // Modern Browser Decompression API
+                            const ds = new DecompressionStream('gzip');
+                            const decompressedStream = event.data.stream().pipeThrough(ds);
+                            const response = new Response(decompressedStream);
+                            jsonString = await response.text();
+                        } catch (err) {
+                            console.error("Decompression failed", err);
+                            return;
+                        }
+                    } else {
+                        jsonString = event.data;
+                    }
+
+                    const parsed: FactoryData = JSON.parse(jsonString);
                     setData(parsed);
 
                     // Update selected machine if it exists in the new data

@@ -4,6 +4,7 @@ import websockets
 import time
 import logging
 import os
+import gzip # [NEW]
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from .factory import Factory
@@ -20,9 +21,13 @@ connected_clients = set()
 async def broadcast(data):
     if not connected_clients:
         return
-    message = json.dumps(data)
+    
+    # [FIX] Compress Payload with Gzip
+    json_str = json.dumps(data)
+    compressed = gzip.compress(json_str.encode('utf-8'))
+    
     # Create a list of tasks to send messages to all clients
-    tasks = [asyncio.create_task(client.send_text(message)) for client in connected_clients]
+    tasks = [asyncio.create_task(client.send_bytes(compressed)) for client in connected_clients]
     # Wait for all tasks to complete, ignoring errors
     await asyncio.gather(*tasks, return_exceptions=True)
 

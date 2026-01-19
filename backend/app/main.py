@@ -8,6 +8,7 @@ import json
 from dotenv import load_dotenv
 import os
 import os
+import gzip # [NEW]
 from pathlib import Path
 import re # [NEW] Regex for parsing AI commands
 from pydantic import BaseModel # [FIX] Top Level Import
@@ -98,10 +99,13 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
 
-    async def broadcast(self, message: str):
+    async def broadcast(self, message: str | bytes):
         for connection in self.active_connections:
             try:
-                await connection.send_text(message)
+                if isinstance(message, bytes):
+                    await connection.send_bytes(message)
+                else:
+                    await connection.send_text(message)
             except Exception as e:
                 logger.error(f"Error broadcasting to client: {e}")
 
@@ -129,7 +133,10 @@ async def push_to_frontend():
     while True:
         try:
             if data_bridge.latest_data:
-                await manager.broadcast(json.dumps(data_bridge.get_latest_data()))
+                # [FIX] Compress Payload with Gzip
+                json_bytes = json.dumps(data_bridge.get_latest_data()).encode('utf-8')
+                compressed = gzip.compress(json_bytes)
+                await manager.broadcast(compressed)
             else:
                 pass
         except Exception as e:

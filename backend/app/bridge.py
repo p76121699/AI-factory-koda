@@ -3,6 +3,7 @@ import json
 import websockets
 import logging
 import os
+import gzip # [NEW]
 from sqlalchemy.ext.asyncio import AsyncSession
 from .database import AsyncSessionLocal
 from .models import Event, MachineState
@@ -114,7 +115,17 @@ class DataBridge:
                     logger.info(f"Connected to Simulation at {self.simulation_url}")
                     self.websocket = websocket # Store connection
                     async for message in websocket:
-                        data = json.loads(message)
+                        # [FIX] Decompress Gzip if binary
+                        if isinstance(message, bytes):
+                            try:
+                                json_str = gzip.decompress(message).decode('utf-8')
+                            except Exception as e:
+                                logger.error(f"Decompression error: {e}")
+                                continue
+                        else:
+                            json_str = message
+                            
+                        data = json.loads(json_str)
                         await self.process_data(data)
             except Exception as e:
                 logger.error(f"Connection error: {e}. Retrying in 5s...")
