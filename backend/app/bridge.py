@@ -24,6 +24,7 @@ class DataBridge:
         self.active_alerts = {} # map machine_id + metric -> Alert Dict
         self.last_autonomy_check = 0
         self.last_cleanup = 0
+        self.last_snapshot = 0 # [NEW] Historian Timer
         self.action_history = [] # List of {timestamp, machine_id, command, resulting_temp?}
         self.running = False
         self.running = False
@@ -77,8 +78,8 @@ class DataBridge:
     async def cleanup_old_data(self):
         """Delete data older than 30 days"""
         try:
-            # 30 days in seconds = 30 * 24 * 3600 = 2,592,000
-            retention_period = 2592000
+            # 7 days in seconds = 7 * 24 * 3600 = 604800
+            retention_period = 604800
             # retention_period = 60 # Test: 1 minute
             
             cutoff_date = time.time() - retention_period
@@ -89,7 +90,7 @@ class DataBridge:
             # We can rely on the DB to handle the comparison if we pass a datetime.datetime object.
             
             from datetime import datetime, timedelta, timezone
-            cutoff_dt = datetime.now(timezone.utc) - timedelta(days=30)
+            cutoff_dt = datetime.now(timezone.utc) - timedelta(days=7)
             
             async with AsyncSessionLocal() as session:
                 from sqlalchemy import delete
@@ -421,10 +422,18 @@ class DataBridge:
             else:
                  logger.warning("⚠️ AI Autonomy Cycle skipped (Previous cycle still running)")
 
+
         # [NEW] Data Cleanup (Every hour check)
         if (current_time_ms - self.last_cleanup) > 3600000: # 1 Hour
              self.last_cleanup = current_time_ms
              asyncio.create_task(self.cleanup_old_data())
+
+        # [NEW] Historical Data Snapshot (Every 60s)
+        # We don't save 1Hz (Too much), but we save 1-min aggregations for trends.
+        if (current_time_ms - self.last_snapshot) > 60000: 
+             self.last_snapshot = current_time_ms
+             asyncio.create_task(self._save_historical_snapshot(data))
+
 
         # Attach alerts to data
         data['alerts'] = current_alerts
@@ -563,6 +572,36 @@ class DataBridge:
             logger.error(f"Autonomy Cycle Error: {e}")
         finally:
             self.ai_is_running = False
+
+    async def _save_historical_snapshot(self, data: dict):
+        """
+        Persist a snapshot of machine states to SQL for historical trending.
+        Strategy: Downsampling (1Hz -> 1/60Hz)
+        """
+        try:
+            async with AsyncSessionLocal() as session:
+                for line in data.get("lines", []):
+                    for m in line.get("machines", []):
+                        # Extract metrics safely
+                        metrics = m.get("metrics", {})
+                        
+                        state = MachineState(
+                            machine_id=m["id"],
+                            status=m["status"],
+                            temperature=metrics.get("temperature"),
+                            vibration=metrics.get("vibration"),
+                            speed=metrics.get("speed"),
+                            load=metrics.get("load"),
+                            power=metrics.get("current") # Using current as proxy for power in simplified model
+                        )
+                        session.add(state)
+                
+                await session.commit()
+                # logger.info("✅ Historical Snapshot Saved")
+                
+        except Exception as e:
+            logger.error(f"Snapshot Error: {e}")
+
 
     def get_latest_data(self):
         data = self.latest_data.copy()

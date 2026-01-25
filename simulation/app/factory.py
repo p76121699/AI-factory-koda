@@ -244,6 +244,48 @@ class Factory:
         self._check_and_restock_inventory()
         self._check_penalties() # [NEW] Check fines
         
+        # [NEW] Daily Asset Snapshot (For Inventory Trends)
+        # Every 86400 simulated seconds (1 Day)
+        # Assuming 1 tick = 1 second for simplicity in this logic, or utilizing time.time differencing
+        # Note: sim_start_time is real-time. If simulation runs at 1x, 86400 seconds is 24 hours.
+        # IF User wants to see "Days" pass in minutes (Fast Forward), we need a scale factor.
+        # But for now, let's assume 1 simulation day = 60 real seconds for demo purposes?
+        # OR better: use a "Day Change" event logic.
+        
+        # LET'S USE A FASTER DAY FOR DEMO: 1 Day = 60 Seconds of Real Time
+        # This allows the user to see bars accumulate quickly.
+        # SIMULATION_DAY_SECONDS = 60.0 
+        
+        # If we want realistic:
+        SIMULATION_DAY_SECONDS = 86400.0
+        
+        days_passed = int((current_time - self.sim_start_time) / SIMULATION_DAY_SECONDS)
+        
+        # Check if we moved to a new day index
+        if not hasattr(self, 'last_recorded_day'):
+             self.last_recorded_day = -1
+             
+        if days_passed > self.last_recorded_day:
+             self.last_recorded_day = days_passed
+             
+             # Snapshot
+             inv_val = sum([i.quantity * i.cost_per_unit for i in self.inventory])
+             
+             snapshot = {
+                 "day": f"Day {days_passed + 1}",
+                 "total_value": self.cash_balance + inv_val,
+                 "inventory_value": inv_val,
+                 "cash": self.cash_balance,
+                 "timestamp": current_time
+             }
+             self.asset_history.append(snapshot)
+             
+             # Keep last 30 days
+             if len(self.asset_history) > 30:
+                 self.asset_history.pop(0)
+             
+             # print(f"DEBUG: Recorded Snapshot for Day {days_passed+1}: {snapshot}")
+        
         # 1. Feed Raw Materials to Cutters (Based on Recipe)
         for line in self.lines:
             if not line.current_order:
@@ -798,6 +840,30 @@ class Factory:
         # Assets Calculation
         inv_value = sum([i.quantity * i.cost_per_unit for i in self.inventory])
         total_assets = self.cash_balance + inv_value
+        
+        return {
+            "timestamp": current_time,
+            "lines": [l.to_dict() for l in self.lines],
+            "workers": [w.to_dict() for w in self.workers],
+            "financials": {
+                "revenue": self.total_revenue,
+                "costs": self.total_costs,
+                "profit": self.total_revenue - self.total_costs,
+                "cash": self.cash_balance,
+                "assets": total_assets,
+                "inventory_value": inv_value
+            },
+            "inventory": [i.to_dict() for i in self.inventory],
+            "orders": self.orders,
+            "total_energy_kwh": total_energy,
+            "global_kpi": {
+                "oee": avg_efficiency,
+                "cycle_time": avg_cycle_time,
+                "defect_rate": defect_rate,
+                "energy_efficiency": avg_efficiency / 2.0 # Mock
+            },
+            "asset_history": self.asset_history # [NEW] Send History to Frontend
+        }
         
         # [FIX] Bandwidth Optimization: Cap history in memory
         if len(self.asset_history) > 1000:
