@@ -77,8 +77,32 @@ class Factory:
         self.total_costs: float = 0.0
         self.total_energy_kwh: float = 0.0 # [NEW] Real Energy Tracking
         self.cash_balance: float = INITIAL_CAPITAL
-        self.asset_history: List[Dict[str, float]] = [] # Track daily/hourly assets
         self.sim_start_time = time.time() # [NEW] Track runtime for 7-day reset
+        self.asset_history: List[Dict[str, float]] = self._seed_mock_history() # [FIX] Seed with mock data
+    
+    def _seed_mock_history(self) -> List[Dict[str, float]]:
+        """Generate 7 days of mock history for dashboard visualization"""
+        history = []
+        base_value = INITIAL_CAPITAL + 10000.0 # Approx starting value
+        now = time.time()
+        
+        for i in range(7, 0, -1):
+            # Simulate flux
+            daily_flux = random.uniform(-0.05, 0.08) # -5% to +8% growth
+            val = base_value * (1.0 + daily_flux)
+            inv_val = val * 0.3 # Assume 30% is inventory
+            
+            history.append({
+                "day": f"Day -{i}",
+                "total_value": val,
+                "inventory_value": inv_val,
+                "cash": val - inv_val,
+                "timestamp": now - (i * 86400)
+            })
+            base_value = val # Compounding
+            
+        self.last_recorded_day = 0 # Start tracking new days from 0 (which is now)
+        return history
         
     def _init_inventory(self) -> List[InventoryItem]:
         items = []
