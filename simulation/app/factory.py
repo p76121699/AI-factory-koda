@@ -138,7 +138,7 @@ class Factory:
         self.orders = []
         self.finished_products = []
         self.inventory = self._init_inventory()
-        self.asset_history = []
+        self.asset_history = self._seed_mock_history() # [FIX] Re-seed after reset to prevent empty chart
         self.sim_start_time = time.time() # [NEW] Reset timer
         
         # Reset Machines & Workers
