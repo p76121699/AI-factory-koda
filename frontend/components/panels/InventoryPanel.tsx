@@ -55,12 +55,13 @@ export default function InventoryPanel() {
         }
 
         // Map history to chart format
-        // History format: { timestamp: X, assets: Y, etc? } 
-        // Factory.py implementation: self.asset_history.append(...) -> It wasn't fully implemented in factory.py loop actually!
-        // I Added the list int `__init__` and exposed it in `to_dict`, but didn't push data to it in `update` loop (commented out).
-        // So it will be empty.
-        // For now, let's keep it clean: Empty placeholder instead of random noise.
-        return [];
+        return history.map((item: any) => ({
+             name: item.day,
+             raw: item.inventory_value, // Map to Raw for color
+             wip: 0,
+             finished: 0,
+             trend: item.total_value
+        }));
     }, [data, stats.totalValue]);
 
     return (
