@@ -56,11 +56,11 @@ export default function InventoryPanel() {
 
         // Map history to chart format
         return history.map((item: any) => ({
-             name: item.day,
-             raw: item.inventory_value, // Map to Raw for color
-             wip: 0,
-             finished: 0,
-             trend: item.total_value
+            name: item.day,
+            raw: item.inventory_value, // Map to Raw for color
+            wip: 0,
+            finished: 0,
+            trend: item.total_value
         }));
     }, [data, stats.totalValue]);
 
@@ -243,6 +243,7 @@ export default function InventoryPanel() {
                                         <Tooltip
                                             cursor={{ fill: 'var(--color-surface-hover)', opacity: 0.5 }}
                                             contentStyle={{ backgroundColor: 'var(--color-background-elevated)', borderColor: 'var(--color-border-subtle)', color: 'var(--color-text-primary)' }}
+                                            formatter={(value: number) => [`$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Value"]}
                                         />
                                         <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                                         <Bar dataKey="raw" name="Raw Material" fill="var(--color-primary-500)" stackId="a" radius={[0, 0, 4, 4]} />

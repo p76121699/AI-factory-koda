@@ -86,22 +86,24 @@ class Factory:
         base_value = INITIAL_CAPITAL + 10000.0 # Approx starting value
         now = time.time()
         
-        for i in range(7, 0, -1):
+        # [FIX] User feedback: "Day -7" is weird. Use sequential "Day 1" to "Day 7"
+        for i in range(7):
+            day_index = i + 1
             # Simulate flux
             daily_flux = random.uniform(-0.05, 0.08) # -5% to +8% growth
             val = base_value * (1.0 + daily_flux)
             inv_val = val * 0.3 # Assume 30% is inventory
             
             history.append({
-                "day": f"Day -{i}",
-                "total_value": val,
-                "inventory_value": inv_val,
-                "cash": val - inv_val,
-                "timestamp": now - (i * 86400)
+                "day": f"Day {day_index}",
+                "total_value": round(val, 2),     # [FIX] Round to 2 decimals
+                "inventory_value": round(inv_val, 2),
+                "cash": round(val - inv_val, 2),
+                "timestamp": now - ((7 - i) * 86400)
             })
             base_value = val # Compounding
             
-        self.last_recorded_day = 0 # Start tracking new days from 0 (which is now)
+        self.last_recorded_day = 0 
         return history
         
     def _init_inventory(self) -> List[InventoryItem]:
