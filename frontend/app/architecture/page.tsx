@@ -255,7 +255,7 @@ export default function ArchitecturePage() {
 
         {/* Diagram Scroll Container (for mobile) */}
         <div className="overflow-x-auto pb-12">
-          <div className="min-w-[1200px] flex justify-center items-stretch p-4">
+          <div className="min-w-max flex items-start gap-4 p-4 md:pl-12">
             {layers.map((layer, index) => (
               <LayerColumn
                 key={index}
