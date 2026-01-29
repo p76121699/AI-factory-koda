@@ -29,7 +29,13 @@ const layers = [
         borderColor: "border-blue-500",
         shadowColor: "shadow-blue-500/20",
       }
-    ]
+    ],
+    // Connection to next layer (API)
+    connection: {
+      protocol: "HTTPS / WSS",
+      bandwidth: "~500 B/req",
+      details: "User Actions"
+    }
   },
   {
     title: "API LAYER",
@@ -46,7 +52,13 @@ const layers = [
         shadowColor: "shadow-emerald-500/20",
         connectedTo: ["sim_service", "ai_agent"]
       }
-    ]
+    ],
+    // Connection to next layer (Services)
+    connection: {
+      protocol: "HTTP / WS",
+      bandwidth: "~25 KB/s",
+      details: "Async Dispatch"
+    }
   },
   {
     title: "MICRO-SERVICES",
@@ -74,7 +86,13 @@ const layers = [
         shadowColor: "shadow-pink-500/20",
         connectedTo: ["db_primary", "db_cache"]
       }
-    ]
+    ],
+    // Connection to next layer (Data)
+    connection: {
+      protocol: "SQL / TCP",
+      bandwidth: "Variable",
+      details: "Pool: 20 conn"
+    }
   },
   {
     title: "DATA LAYER",
@@ -141,22 +159,32 @@ function BlueprintCard({ comp }: { comp: any }) {
       {/* Port Badge */}
       {comp.port && (
         <div className="absolute top-2 right-2">
-           <span className="text-[10px] font-mono text-gray-500 bg-gray-950/50 px-1.5 py-0.5 rounded border border-gray-800">
-             :{comp.port}
-           </span>
+          <span className="text-[10px] font-mono text-gray-500 bg-gray-950/50 px-1.5 py-0.5 rounded border border-gray-800">
+            :{comp.port}
+          </span>
         </div>
       )}
     </div>
   );
 }
 
-function ConnectionArrow({ label }: { label?: string }) {
+function ConnectionArrow({ label, subLabel, bandwidth }: { label?: string, subLabel?: string, bandwidth?: string }) {
   return (
-    <div className="hidden md:flex flex-col items-center justify-center mx-2 w-12 opacity-50">
-      <div className="h-[2px] w-full bg-gray-700 relative">
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-l-[6px] border-l-gray-700 border-y-[4px] border-y-transparent"></div>
+    <div className="hidden md:flex flex-col items-center justify-center mx-4 w-24 opacity-80 group">
+      {/* Bandwidth Badge */}
+      <div className="mb-1 px-2 py-0.5 bg-gray-800 border border-gray-700 rounded text-[10px] text-green-400 font-mono shadow-sm">
+        {bandwidth}
       </div>
-      {label && <span className="text-[10px] text-gray-500 mt-1 font-mono whitespace-nowrap">{label}</span>}
+
+      {/* Arrow Line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-gray-700 via-blue-500 to-gray-700 relative my-1">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-l-[6px] border-l-gray-600 border-y-[4px] border-y-transparent"></div>
+      </div>
+
+      {/* Main Label */}
+      {label && <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">{label}</span>}
+      {/* Sub Label */}
+      {subLabel && <span className="text-[9px] text-gray-500">{subLabel}</span>}
     </div>
   );
 }
@@ -180,10 +208,15 @@ function LayerColumn({ layer, isLast }: { layer: any, isLast: boolean }) {
       </div>
 
       {/* Connection Arrow to Next Layer */}
-      {!isLast && (
-        <div className="my-4 md:my-0 md:mx-6 flex items-center justify-center">
-             <span className="text-gray-600 text-xl font-thin transform rotate-90 md:rotate-0">➜</span>
-             {/* Alternatively use a styled SVG arrow here */}
+      {!isLast && layer.connection && (
+        <div className="my-8 md:my-0 md:mx-2 flex items-center justify-center">
+          <ConnectionArrow
+            label={layer.connection.protocol}
+            subLabel={layer.connection.details}
+            bandwidth={layer.connection.bandwidth}
+          />
+          {/* Mobile / Simple Arrow Fallback */}
+          <span className="md:hidden text-gray-600 text-xl font-thin transform rotate-90">➜</span>
         </div>
       )}
     </div>
@@ -196,20 +229,20 @@ function LayerColumn({ layer, isLast }: { layer: any, isLast: boolean }) {
 export default function ArchitecturePage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white font-sans selection:bg-blue-500/30">
-        
+
       {/* Background Grid Pattern */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20"
-           style={{
-             backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)',
-             backgroundSize: '40px 40px'
-           }}
+        style={{
+          backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)',
+          backgroundSize: '40px 40px'
+        }}
       ></div>
-      
+
       {/* Radial Gradient Glow */}
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent"></div>
 
       <div className="relative z-10 p-8 md:p-12 max-w-[1600px] mx-auto">
-        
+
         {/* Header */}
         <header className="mb-16 text-center">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4 tracking-tight">
@@ -222,40 +255,40 @@ export default function ArchitecturePage() {
 
         {/* Diagram Scroll Container (for mobile) */}
         <div className="overflow-x-auto pb-12">
-            <div className="min-w-[1000px] flex justify-center items-stretch p-4">
-                {layers.map((layer, index) => (
-                    <LayerColumn 
-                        key={index} 
-                        layer={layer} 
-                        isLast={index === layers.length - 1} 
-                    />
-                ))}
-            </div>
+          <div className="min-w-[1200px] flex justify-center items-stretch p-4">
+            {layers.map((layer, index) => (
+              <LayerColumn
+                key={index}
+                layer={layer}
+                isLast={index === layers.length - 1}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Legend / Stats Footer */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 border-t border-gray-800 pt-8 text-sm text-gray-400">
-           <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-               <span className="text-2xl">⚡</span>
-               <div>
-                   <strong className="text-white block">Real-time Latency</strong>
-                   1Hz Push (WebSocket)
-               </div>
-           </div>
-           <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-               <span className="text-2xl">🔒</span>
-               <div>
-                   <strong className="text-white block">Security</strong>
-                   JWT & Rate Limiting (Gateway)
-               </div>
-           </div>
-           <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-               <span className="text-2xl">🧠</span>
-               <div>
-                   <strong className="text-white block">AI Interpretation</strong>
-                   LLM Context Build (~5s)
-               </div>
-           </div>
+          <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
+            <span className="text-2xl">⚡</span>
+            <div>
+              <strong className="text-white block">Real-time Latency</strong>
+              1Hz Push (WebSocket)
+            </div>
+          </div>
+          <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
+            <span className="text-2xl">🔒</span>
+            <div>
+              <strong className="text-white block">Security</strong>
+              JWT & Rate Limiting (Gateway)
+            </div>
+          </div>
+          <div className="flex items-center gap-4 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
+            <span className="text-2xl">🧠</span>
+            <div>
+              <strong className="text-white block">AI Interpretation</strong>
+              LLM Context Build (~5s)
+            </div>
+          </div>
         </div>
 
       </div>
