@@ -20,7 +20,7 @@ env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 # Global DataBridge instance
@@ -212,4 +212,4 @@ async def control_machine(machine_id: str, request: ControlRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.app.main:app", host="127.0.0.1", port=8000, reload=False)
+    uvicorn.run("backend.app.main:app", host="127.0.0.1", port=8000, reload=False, log_level="critical", access_log=False)

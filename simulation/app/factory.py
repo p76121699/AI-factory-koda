@@ -41,7 +41,7 @@ class ProductionLine:
                 product = curr_m.output_buffer.pop(0)
                 next_m.input_buffer.append(product)
                 
-                # If we were starved/idle, wake up
+                # If we were starved/idle, wake up (but NOT if manually STOPPED)
                 if next_m.status in ["IDLE", "STARVED"]:
                     next_m.status = "RUNNING"
                 
@@ -758,7 +758,7 @@ class Factory:
         m = self.get_machine(machine_id)
         if m:
             if command == "start": m.status = "RUNNING"
-            elif command == "stop": m.status = "IDLE"
+            elif command == "stop": m.status = "STOPPED"
             elif command == "reset": 
                 print(f"DEBUG: Processing RESET for {m.id}. Status was {m.status}")
                 if m.status == "ERROR":
@@ -867,29 +867,7 @@ class Factory:
         inv_value = sum([i.quantity * i.cost_per_unit for i in self.inventory])
         total_assets = self.cash_balance + inv_value
         
-        return {
-            "timestamp": current_time,
-            "lines": [l.to_dict() for l in self.lines],
-            "workers": [w.to_dict() for w in self.workers],
-            "financials": {
-                "revenue": self.total_revenue,
-                "costs": self.total_costs,
-                "profit": self.total_revenue - self.total_costs,
-                "cash": self.cash_balance,
-                "assets": total_assets,
-                "inventory_value": inv_value
-            },
-            "inventory": [i.to_dict() for i in self.inventory],
-            "orders": self.orders,
-            "total_energy_kwh": total_energy,
-            "global_kpi": {
-                "oee": avg_efficiency,
-                "cycle_time": avg_cycle_time,
-                "defect_rate": defect_rate,
-                "energy_efficiency": avg_efficiency / 2.0 # Mock
-            },
-            "asset_history": self.asset_history # [NEW] Send History to Frontend
-        }
+
         
         # [FIX] Bandwidth Optimization: Cap history in memory
         if len(self.asset_history) > 1000:
