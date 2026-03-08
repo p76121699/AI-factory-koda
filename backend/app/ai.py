@@ -4,6 +4,7 @@ import json
 import logging
 import requests
 import asyncio
+import re
 from pathlib import Path
 
 # Try importing Google Generative AI
@@ -60,6 +61,14 @@ class AICollaborator:
         else:
              raise Exception(f"Ollama Status {response.status_code}")
 
+    def _extract_json(self, text: str) -> str:
+        """Helper to extract JSON block from markdown-formatted or messy AI responses"""
+        # Finds the first { and the last } and everything in between
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if match:
+            return match.group(0)
+        return text
+
     async def _generate_response(self, prompt: str) -> str:
         if self.use_google:
             try:
@@ -115,8 +124,8 @@ class AICollaborator:
         try:
             content = await self._generate_response(prompt_text)
             
-            # Clean Markdown
-            content = content.replace("```json", "").replace("```", "").strip()
+            # Robust JSON extraction
+            content = self._extract_json(content)
             
             ai_resp = json.loads(content)
             reply = ai_resp.get("response", "Processing...")
@@ -160,7 +169,7 @@ class AICollaborator:
         
         try:
             content = await self._generate_response(prompt_text)
-            content = content.replace("```json", "").replace("```", "").strip()
+            content = self._extract_json(content)
             return content
         except Exception as e:
             logger.error(f"Analysis Error: {e}")
@@ -211,7 +220,7 @@ class AICollaborator:
         
         try:
             content = await self._generate_response(prompt_text)
-            content = content.replace("```json", "").replace("```", "").strip()
+            content = self._extract_json(content)
             return json.loads(content)
         except Exception as e:
             logger.error(f"Autonomy Error: {e}")
