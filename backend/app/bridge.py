@@ -382,9 +382,9 @@ class DataBridge:
                          alert['resolved'] = True
                          alert['resolved_at'] = current_time_ms
                          
-                         # [FIX] Prevent duplicate suffix
+                         # [FIX] Prevent duplicate suffix and KeyError
                          if "Auto-Executed" not in alert.get('suggested_action', ''):
-                            alert['suggested_action'] += " (Auto-Executed)"
+                            alert['suggested_action'] = alert.get('suggested_action', '') + " (Auto-Executed)"
                          
                          # DO NOT DELETE IMMEDIATELY
                          # keys_to_delete.append(key) -> Handled by Cleanup Loop next tick
