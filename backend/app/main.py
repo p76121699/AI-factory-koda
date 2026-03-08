@@ -84,6 +84,18 @@ async def set_autonomy(request: AutonomyRequest):
     data_bridge.set_autonomy(request.enabled)
     return {"status": "success", "enabled": request.enabled}
 
+class AIAnalysisRequest(BaseModel):
+    enabled: bool
+
+@app.get("/api/ai-analysis")
+async def get_ai_analysis():
+    return {"enabled": data_bridge.get_ai_analysis()}
+
+@app.post("/api/ai-analysis")
+async def set_ai_analysis(request: AIAnalysisRequest):
+    data_bridge.set_ai_analysis(request.enabled)
+    return {"status": "success", "enabled": request.enabled}
+
 @app.get("/api/v1/latest")
 async def get_latest_data():
     return data_bridge.get_latest_data()

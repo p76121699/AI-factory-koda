@@ -5,6 +5,7 @@ export default function AIAssistantPanel() {
     const { currentState, activePanel, apiUrl } = useFactory(); // [FIX] Get apiUrl from Context
     const [resetting, setResetting] = useState(false);
     const [autonomyEnabled, setLocalAutonomy] = useState(true);
+    const [aiAnalysisEnabled, setLocalAiAnalysis] = useState(false); // [NEW] AI Analysis State
     // const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'; // Removed, using Context
 
     // Sync with Backend on Mount
@@ -13,14 +14,22 @@ export default function AIAssistantPanel() {
             .then(res => res.json())
             .then(data => setLocalAutonomy(data.enabled))
             .catch(err => console.error("Failed to fetch autonomy status:", err));
-    }, []);
+
+        fetch(`${apiUrl}/api/ai-analysis`)
+            .then(res => res.json())
+            .then(data => setLocalAiAnalysis(data.enabled))
+            .catch(err => console.error("Failed to fetch AI analysis status:", err));
+    }, [apiUrl]);
 
     // Also sync if valid data comes in stream (optional, but good for multi-client)
     React.useEffect(() => {
         if (currentState?.autonomy_enabled !== undefined) {
             setLocalAutonomy(currentState.autonomy_enabled);
         }
-    }, [currentState?.autonomy_enabled]);
+        if (currentState?.ai_analysis_enabled !== undefined) {
+            setLocalAiAnalysis(currentState.ai_analysis_enabled);
+        }
+    }, [currentState?.autonomy_enabled, currentState?.ai_analysis_enabled]);
 
     const toggleAutonomy = async () => {
         const newState = !autonomyEnabled;
@@ -35,6 +44,22 @@ export default function AIAssistantPanel() {
         } catch (e) {
             console.error("Failed to set autonomy:", e);
             setLocalAutonomy(!newState); // Revert
+        }
+    };
+
+    const toggleAiAnalysis = async () => {
+        const newState = !aiAnalysisEnabled;
+        setLocalAiAnalysis(newState); // Optimistic update
+
+        try {
+            await fetch(`${apiUrl}/api/ai-analysis`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: newState })
+            });
+        } catch (e) {
+            console.error("Failed to set AI analysis:", e);
+            setLocalAiAnalysis(!newState); // Revert
         }
     };
 
@@ -86,14 +111,31 @@ export default function AIAssistantPanel() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 mt-6">
+                    <div className="flex flex-col gap-4 mt-6">
+                        {/* Autonomy Toggle */}
                         <label className="flex items-center cursor-pointer">
                             <div className="relative">
                                 <input type="checkbox" className="sr-only" checked={autonomyEnabled} onChange={toggleAutonomy} />
                                 <div className={`block w-14 h-8 rounded-full transition-colors ${autonomyEnabled ? 'bg-blue-600' : 'bg-gray-600'}`}></div>
                                 <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${autonomyEnabled ? 'transform translate-x-6' : ''}`}></div>
                             </div>
-                            <span className="ml-3 text-white font-medium">Enable Autonomy</span>
+                            <div className="ml-3">
+                                <span className="block text-white font-medium">Enable Autonomy</span>
+                                <span className="block text-xs text-gray-400">Allows AI to control machine speeds (runs every 10s).</span>
+                            </div>
+                        </label>
+
+                        {/* AI Analysis Toggle */}
+                        <label className="flex items-center cursor-pointer mt-2">
+                            <div className="relative">
+                                <input type="checkbox" className="sr-only" checked={aiAnalysisEnabled} onChange={toggleAiAnalysis} />
+                                <div className={`block w-14 h-8 rounded-full transition-colors ${aiAnalysisEnabled ? 'bg-green-600' : 'bg-gray-600'}`}></div>
+                                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${aiAnalysisEnabled ? 'transform translate-x-6' : ''}`}></div>
+                            </div>
+                            <div className="ml-3">
+                                <span className="block text-white font-medium">Enable Anomaly AI Analysis</span>
+                                <span className="block text-xs text-gray-400">Calls Gemini for Root Cause suggestions on each new warning.</span>
+                            </div>
                         </label>
                     </div>
                 </div>

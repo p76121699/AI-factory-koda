@@ -35,6 +35,7 @@ class DataBridge:
         self.autonomy_enabled = False # [FIX] Default to PAUSED (Safety First)
         self.safety_locks = {} # [NEW] machine_id -> timestamp (release time)
         self.ai_history = [] # [NEW] Broadcastable AI Actions
+        self.ai_analysis_enabled = False # [NEW] User toggle for anomaly AI analysis
         self.last_autonomy_action = {} # [NEW] machine_id -> timestamp (cooldown)
         self.ai_is_running = False # [NEW] Async Lock for AI Cycle
 
@@ -44,6 +45,13 @@ class DataBridge:
 
     def get_autonomy(self) -> bool:
         return self.autonomy_enabled
+
+    def set_ai_analysis(self, enabled: bool):
+        self.ai_analysis_enabled = enabled
+        logger.info(f"AI Anomaly Analysis Set to: {enabled}")
+
+    def get_ai_analysis(self) -> bool:
+        return self.ai_analysis_enabled
 
     async def reset_data(self):
         """Hard Factory Reset: Clear DB and Simulation"""
@@ -233,7 +241,7 @@ class DataBridge:
                             }
                             
                             # AI Analysis for High/Critical OR Persistent Warnings
-                            if new_alert['severity'] in ['high', 'critical', 'warning']:
+                            if self.ai_analysis_enabled and new_alert['severity'] in ['high', 'critical', 'warning']:
                                 # Fire-and-forget AI analysis
                                 asyncio.create_task(self._run_ai_analysis(anomaly, anomaly_key, new_alert['id']))
 
@@ -438,6 +446,7 @@ class DataBridge:
         # Attach alerts to data
         data['alerts'] = current_alerts
         data['autonomy_enabled'] = self.autonomy_enabled # [NEW] Broadcast state
+        data['ai_analysis_enabled'] = self.ai_analysis_enabled # [NEW] Broadcast state
         # self.latest_data = data # Moved to top
         # logger.info("Bridge updated latest_data")
 
