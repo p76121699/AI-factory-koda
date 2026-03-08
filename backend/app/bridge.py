@@ -397,7 +397,7 @@ class DataBridge:
             del self.active_alerts[key]
 
         # [NEW] Periodic AI Autonomy Check (Global Optimization)
-        if (current_time_ms - self.last_autonomy_check) > 10000: # Every 10 Seconds
+        if self.autonomy_enabled and (current_time_ms - self.last_autonomy_check) > 10000: # Every 10 Seconds
             self.last_autonomy_check = current_time_ms
             
             # Build Context
@@ -411,7 +411,6 @@ class DataBridge:
                         "id": m["id"],
                         "status": m["status"],
                         "temp": m.get("temperature", 0),
-                        "speed": m.get("speed", 0),
                         "speed": m.get("speed", 0),
                         "efficiency": m.get("efficiency", 100),
                         "wear": max([p.get("wear", 0) for p in m.get("parts", [])], default=0.0),
